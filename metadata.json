@@ -1,0 +1,6 @@
+{
+  "name": "Gestor de Pádel y Bar",
+  "description": "Plataforma para gestionar turnos de canchas de pádel, registrar ventas e insumos del bar, y controlar inventarios automáticamente.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
