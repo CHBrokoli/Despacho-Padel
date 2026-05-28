@@ -335,9 +335,9 @@ export default function BookingCalendar({
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-3xl max-w-md w-full shadow-2xl overflow-hidden border border-slate-100"
+              className="bg-[#0f172b] rounded-3xl max-w-md w-full shadow-2xl overflow-hidden border border-[#334155]"
             >
-              <div className="bg-slate-900 p-6 text-white flex items-center justify-between">
+              <div className="bg-slate-900/90 p-6 text-white flex items-center justify-between border-b border-[#334155]">
                 <div>
                   <h3 className="font-extrabold text-lg text-white">Nueva Reserva de Cancha</h3>
                   <p className="text-xs text-slate-400 mt-1">Ingresa los datos para registrar el turno.</p>
@@ -351,9 +351,9 @@ export default function BookingCalendar({
                 </button>
               </div>
 
-              <form onSubmit={handleCreateSubmit} className="p-6 space-y-4">
+              <form onSubmit={handleCreateSubmit} className="p-6 space-y-4" style={{ backgroundColor: '#0f172b' }}>
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Nombre del Cliente *</label>
+                  <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">Nombre del Cliente *</label>
                   <div className="relative">
                     <User className="absolute left-3 top-3 text-slate-400" size={16} />
                     <input 
@@ -363,29 +363,30 @@ export default function BookingCalendar({
                       placeholder="Ej. Juan de la Cruz"
                       value={clientName}
                       onChange={(e) => setClientName(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 bg-slate-50/50"
+                      className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-xl text-sm focus:outline-hidden focus:ring-1 focus:ring-lime-400 focus:border-lime-400 bg-white placeholder-slate-400 font-bold"
+                      style={{ color: '#000000' }}
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Teléfono de Contacto</label>
+                  <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">Teléfono de Contacto</label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-3 text-slate-400" size={16} />
                     <input 
                       type="tel" 
                       id="form-client-phone"
-                      placeholder="Ej. +54 9 351 123456"
+                      placeholder="Ej. +595 981 123456"
                       value={clientPhone}
                       onChange={(e) => setClientPhone(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 bg-slate-50/50"
+                      className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-xl text-sm focus:outline-hidden focus:ring-1 focus:ring-lime-400 focus:border-lime-400 bg-white text-slate-900 placeholder-slate-400 font-bold"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Cancha</label>
+                    <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">Cancha</label>
                     <select 
                       id="form-court-select"
                       value={formCourtId}
@@ -394,7 +395,7 @@ export default function BookingCalendar({
                         const court = courts.find(c => c.id === e.target.value);
                         if (court) setFormCustomPrice(court.price90Min);
                       }}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:ring-1 focus:ring-emerald-500 bg-slate-50/50"
+                      className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-hidden focus:ring-1 focus:ring-lime-400 bg-white text-slate-900 font-bold"
                     >
                       {courts.map(c => (
                         <option key={c.id} value={c.id}>{c.name}</option>
@@ -403,12 +404,12 @@ export default function BookingCalendar({
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Horario Inicio</label>
+                    <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">Horario Inicio</label>
                     <select 
                       id="form-time-select"
                       value={formStartTime}
                       onChange={(e) => setFormStartTime(e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:ring-1 focus:ring-emerald-500 bg-slate-50/50"
+                      className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-hidden focus:ring-1 focus:ring-lime-400 bg-white text-slate-900 font-bold"
                     >
                       {TIME_SLOTS.map(t => (
                         <option key={t.start} value={t.start}>{t.start} hs</option>
@@ -418,32 +419,32 @@ export default function BookingCalendar({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Precio de la Cancha ($)</label>
+                  <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">Precio de la Cancha (Gs.)</label>
                   <div className="relative">
-                    <DollarSign className="absolute left-3 top-3 text-slate-400" size={16} />
+                    <span className="absolute left-3 top-2.5 text-xs text-slate-500 font-extrabold select-none">Gs.</span>
                     <input 
                       type="number" 
                       id="form-court-price"
                       value={formCustomPrice}
                       onChange={(e) => setFormCustomPrice(Number(e.target.value))}
-                      className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 bg-slate-50/50 font-semibold text-slate-900"
+                      className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-xl text-sm focus:outline-hidden focus:ring-1 focus:ring-lime-400 focus:border-lime-400 bg-white font-bold text-slate-900"
                     />
                   </div>
                 </div>
 
-                <div className="flex gap-3 pt-4 border-t border-slate-100">
+                <div className="flex gap-3 pt-4 border-t border-[#334155]">
                   <button 
                     type="button" 
                     id="cancel-create-submit"
                     onClick={handleCloseCreate}
-                    className="flex-1 py-2.5 text-xs font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 transition-colors rounded-xl"
+                    className="flex-1 py-2.5 text-xs font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 transition-colors rounded-xl"
                   >
                     Salir
                   </button>
                   <button 
                     type="submit" 
                     id="submit-create"
-                    className="flex-1 py-2.5 text-xs font-bold text-white bg-emerald-500 hover:bg-emerald-600 transition-colors rounded-xl"
+                    className="flex-1 py-2.5 text-xs font-extrabold text-slate-950 bg-lime-400 hover:bg-lime-300 transition-colors rounded-xl shadow-md"
                   >
                     Confirmar Reserva
                   </button>
