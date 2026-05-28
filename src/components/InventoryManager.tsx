@@ -188,16 +188,16 @@ export default function InventoryManager({
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: 'auto', opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
-                  className="bg-slate-50/50 border-b border-slate-100 overflow-hidden"
+                  className="bg-[#0e162c] border-b border-[#334155] overflow-hidden"
                 >
-                  <form onSubmit={handleCreateProduct} className="p-5 space-y-4">
-                    <h4 className="text-xs font-black text-slate-800 uppercase tracking-widest flex items-center gap-1.5">
+                  <form onSubmit={handleCreateProduct} className="p-5 space-y-4" style={{ backgroundColor: '#0e162c' }}>
+                    <h4 className="text-xs font-black text-slate-200 uppercase tracking-widest flex items-center gap-1.5">
                       <FolderPlus size={14} /> Agregar Producto en Catálogo
                     </h4>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-slate-500 uppercase">Nombre Comercial</label>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase">Nombre Comercial</label>
                         <input 
                           type="text" 
                           id="new-product-name"
@@ -205,17 +205,19 @@ export default function InventoryManager({
                           placeholder="Ej. Grip Wilson blanco"
                           value={newName}
                           onChange={(e) => setNewName(e.target.value)}
-                          className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
+                          className="w-full px-3 py-2 border border-[#334155] rounded-xl text-xs bg-white focus:outline-hidden focus:ring-1 focus:ring-lime-400 font-bold"
+                          style={{ color: '#000000' }}
                         />
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-slate-500 uppercase">Categoría</label>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase">Categoría</label>
                         <select 
                           id="new-product-category"
                           value={newCat}
                           onChange={(e) => setNewCat(e.target.value as any)}
-                          className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
+                          className="w-full px-3 py-2 border border-[#334155] rounded-xl text-xs bg-white focus:outline-hidden focus:ring-1 focus:ring-lime-400 font-bold"
+                          style={{ color: '#000000' }}
                         >
                           <option value="bebidas">Bebidas</option>
                           <option value="snacks">Snacks</option>
@@ -227,57 +229,61 @@ export default function InventoryManager({
 
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                       <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-slate-500 uppercase">Costo Unitario ($)</label>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase">Costo Unitario (Gs.)</label>
                         <input 
                           type="number" 
                           id="new-product-cost"
                           min="0"
                           value={newCost}
                           onChange={(e) => setNewCost(Number(e.target.value))}
-                          className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white"
+                          className="w-full px-3 py-2 border border-[#334155] rounded-xl text-xs bg-white font-bold"
+                          style={{ color: '#000000' }}
                         />
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-slate-500 uppercase">Precio Venta ($)</label>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase">Precio Venta (Gs.)</label>
                         <input 
                           type="number" 
                           id="new-product-price"
                           min="0"
                           value={newPrice}
                           onChange={(e) => setNewPrice(Number(e.target.value))}
-                          className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white font-semibold text-slate-900"
+                          className="w-full px-3 py-2 border border-[#334155] rounded-xl text-xs bg-white font-black"
+                          style={{ color: '#000000' }}
                         />
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-slate-500 uppercase">Stock Inicial</label>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase">Stock Inicial</label>
                         <input 
                           type="number" 
                           id="new-product-stock"
                           min="0"
                           value={newStock}
                           onChange={(e) => setNewStock(Number(e.target.value))}
-                          className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white"
+                          className="w-full px-3 py-2 border border-[#334155] rounded-xl text-xs bg-white font-bold"
+                          style={{ color: '#000000' }}
                         />
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-slate-500 uppercase">Stock Mín. (Alerta)</label>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase">Stock Mín. (Alerta)</label>
                         <input 
                           type="number" 
                           id="new-product-minstock"
                           min="1"
                           value={newMinStock}
                           onChange={(e) => setNewMinStock(Number(e.target.value))}
-                          className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white"
+                          className="w-full px-3 py-2 border border-[#334155] rounded-xl text-xs bg-white font-bold"
+                          style={{ color: '#000000' }}
                         />
                       </div>
                     </div>
 
                     {/* Presets icons */}
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase block">Icono Visual</label>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase block">Icono Visual</label>
                       <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
                         {ICON_PRESETS.map(preset => (
                           <button
@@ -287,8 +293,8 @@ export default function InventoryManager({
                             onClick={() => setNewIcon(preset.name)}
                             className={`p-2 rounded-xl flex flex-col items-center gap-1 border transition-all cursor-pointer ${
                               newIcon === preset.name 
-                                ? 'border-emerald-500 bg-emerald-50 text-emerald-800 font-bold' 
-                                : 'border-slate-200 hover:bg-white text-slate-500'
+                                ? 'border-lime-400 bg-lime-950/40 text-lime-400 font-bold' 
+                                : 'border-[#334155] hover:bg-slate-800 text-slate-400'
                             }`}
                           >
                             <LucideIcon name={preset.name} size={15} />
@@ -298,19 +304,19 @@ export default function InventoryManager({
                       </div>
                     </div>
 
-                    <div className="flex gap-2 justify-end pt-2 border-t border-slate-100">
+                    <div className="flex gap-2 justify-end pt-2 border-t border-[#334155]">
                       <button
                         type="button"
                         id="cancel-new-product"
                         onClick={() => setIsAddingNew(false)}
-                        className="px-4 py-2 text-xs font-semibold text-slate-500 bg-white border border-slate-200 rounded-xl hover:bg-slate-50"
+                        className="px-4 py-2 text-xs font-semibold text-slate-300 bg-slate-800 border border-[#334155] rounded-xl hover:bg-slate-700"
                       >
                         Cancelar
                       </button>
                       <button
                         type="submit"
                         id="submit-new-product"
-                        className="px-4 py-2 text-xs font-bold text-white bg-emerald-500 hover:bg-emerald-600 rounded-xl"
+                        className="px-4 py-2 text-xs font-black text-slate-950 bg-lime-400 hover:bg-lime-300 rounded-xl transition-all shadow-md"
                       >
                         Guardar Producto
                       </button>
