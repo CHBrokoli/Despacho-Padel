@@ -24,6 +24,16 @@ export interface BookingOrderItem {
   price: number;
 }
 
+export interface BookingClient {
+  id: string;
+  name: string;
+  phone?: string;
+  courtShare: number;
+  barTab: BookingOrderItem[];
+  paid: boolean;
+  paymentMethod?: 'efectivo' | 'transferencia' | 'tarjeta';
+}
+
 export interface Booking {
   id: string;
   courtId: string;
@@ -34,9 +44,10 @@ export interface Booking {
   endTime: string;   // e.g. "09:30", "11:00"
   status: 'reservado' | 'completado' | 'cancelado';
   courtPrice: number;
-  barTab: BookingOrderItem[]; // Items ordered on this court during match
+  barTab: BookingOrderItem[]; // Items ordered on this court during match (general/shared tab)
   paid: boolean;
   paymentMethod?: 'efectivo' | 'transferencia' | 'tarjeta';
+  clients?: BookingClient[]; // Loaded individual clients for splitting
 }
 
 export interface Sale {

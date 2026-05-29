@@ -12,7 +12,9 @@ import {
   ShoppingBag, 
   Activity, 
   FileCheck2,
-  ListOrdered
+  ListOrdered,
+  Users,
+  AlertTriangle
 } from 'lucide-react';
 import { Booking, Court, Product } from '../types';
 
@@ -24,9 +26,11 @@ interface BookingCalendarProps {
   onSetSelectedDate: (date: string) => void;
   onAddBooking: (booking: Booking) => void;
   onCancelBooking: (bookingId: string) => void;
-  onAddProductToTab: (bookingId: string, productId: string, qty: number) => void;
-  onRemoveProductFromTab: (bookingId: string, productId: string) => void;
+  onAddProductToTab: (bookingId: string, productId: string, qty: number, clientId?: string) => void;
+  onRemoveProductFromTab: (bookingId: string, productId: string, clientId?: string) => void;
   onCheckoutBooking: (bookingId: string, paymentMethod: 'efectivo' | 'transferencia' | 'tarjeta') => void;
+  onCheckoutClientShare: (bookingId: string, clientId: string, paymentMethod: 'efectivo' | 'transferencia' | 'tarjeta') => void;
+  onUpdateBooking: (booking: Booking) => void;
   formatPrice: (amount: number) => string;
 }
 
@@ -54,6 +58,8 @@ export default function BookingCalendar({
   onAddProductToTab,
   onRemoveProductFromTab,
   onCheckoutBooking,
+  onCheckoutClientShare,
+  onUpdateBooking,
   formatPrice
 }: BookingCalendarProps) {
   // Modal states
@@ -72,10 +78,143 @@ export default function BookingCalendar({
   const [quickOrderProductId, setQuickOrderProductId] = useState('');
   const [quickOrderQty, setQuickOrderQty] = useState(1);
   const [orderError, setOrderError] = useState('');
+  const [quickOrderClientId, setQuickOrderClientId] = useState(''); // "" is Shared/General tab
 
   // Checkout process view state
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'efectivo' | 'transferencia' | 'tarjeta'>('efectivo');
+
+  // Multi-client management state
+  const [newClientName, setNewClientName] = useState('');
+  const [newClientPhone, setNewClientPhone] = useState('');
+  const [checkingOutClientId, setCheckingOutClientId] = useState<string | null>(null);
+  const [clientCheckoutMethod, setClientCheckoutMethod] = useState<'efectivo' | 'transferencia' | 'tarjeta'>('efectivo');
+
+  // Initialize multi-client list with primary customer
+  const handleInitializeMultiClients = () => {
+    if (!selectedBooking) return;
+    const primaryPlayer = {
+      id: 'c_main_' + Date.now(),
+      name: selectedBooking.clientName,
+      phone: selectedBooking.clientPhone || undefined,
+      courtShare: selectedBooking.courtPrice,
+      barTab: [],
+      paid: false
+    };
+
+    const updatedBooking = {
+      ...selectedBooking,
+      clients: [primaryPlayer]
+    };
+    onUpdateBooking(updatedBooking);
+    setSelectedBooking(updatedBooking);
+  };
+
+  // Add another client and automatically split the court price among them
+  const handleAddClientToList = (e: React.FormEvent) => { e.preventDefault();
+    if (!selectedBooking || !newClientName.trim()) return;
+
+    const newPlayer = {
+      id: 'c_sub_' + Date.now(),
+      name: newClientName.trim(),
+      phone: newClientPhone.trim() || undefined,
+      courtShare: 0,
+      barTab: [],
+      paid: false
+    };
+
+    const currentClients = selectedBooking.clients ? [...selectedBooking.clients] : [];
+    const updatedClients = [...currentClients, newPlayer];
+
+    // Auto split equally
+    const numClients = updatedClients.length;
+    const share = Math.round(selectedBooking.courtPrice / numClients);
+    const splitClients = updatedClients.map((c, idx) => {
+      const clientShare = idx === 0 
+        ? selectedBooking.courtPrice - (share * (numClients - 1))
+        : share;
+      return { ...c, courtShare: clientShare };
+    });
+
+    const updatedBooking = {
+      ...selectedBooking,
+      clients: splitClients
+    };
+
+    onUpdateBooking(updatedBooking);
+    setSelectedBooking(updatedBooking);
+
+    setNewClientName('');
+    setNewClientPhone('');
+  };
+
+  // Delete a client from list and re-split equally
+  const handleDeleteClient = (clientId: string) => {
+    if (!selectedBooking || !selectedBooking.clients) return;
+    const updatedClients = selectedBooking.clients.filter(c => c.id !== clientId);
+
+    let updatedBooking: Booking;
+    if (updatedClients.length === 0) {
+      updatedBooking = {
+        ...selectedBooking,
+        clients: undefined
+      };
+    } else {
+      const numClients = updatedClients.length;
+      const share = Math.round(selectedBooking.courtPrice / numClients);
+      const splitClients = updatedClients.map((c, idx) => {
+        const clientShare = idx === 0 
+          ? selectedBooking.courtPrice - (share * (numClients - 1))
+          : share;
+        return { ...c, courtShare: clientShare };
+      });
+
+      updatedBooking = {
+        ...selectedBooking,
+        clients: splitClients
+      };
+    }
+
+    onUpdateBooking(updatedBooking);
+    setSelectedBooking(updatedBooking);
+  };
+
+  // Split court share equally
+  const handleReSplitEqually = () => {
+    if (!selectedBooking || !selectedBooking.clients || selectedBooking.clients.length === 0) return;
+    const numClients = selectedBooking.clients.length;
+    const share = Math.round(selectedBooking.courtPrice / numClients);
+    const splitClients = selectedBooking.clients.map((c, idx) => {
+      const clientShare = idx === 0 
+        ? selectedBooking.courtPrice - (share * (numClients - 1))
+        : share;
+      return { ...c, courtShare: clientShare };
+    });
+
+    const updatedBooking = {
+      ...selectedBooking,
+      clients: splitClients
+    };
+
+    onUpdateBooking(updatedBooking);
+    setSelectedBooking(updatedBooking);
+  };
+
+  // Update client’s courtShare manually
+  const handleUpdateClientShare = (clientId: string, shareValue: number) => {
+    if (!selectedBooking || !selectedBooking.clients) return;
+    const updatedClients = selectedBooking.clients.map(c => 
+      c.id === clientId ? { ...c, courtShare: shareValue } : c
+    );
+
+    const updatedBooking = {
+      ...selectedBooking,
+      clients: updatedClients
+    };
+
+    onUpdateBooking(updatedBooking);
+    setSelectedBooking(updatedBooking);
+  };
 
   // Open creation modal
   const handleOpenCreate = (courtId: string, startTime: string) => {
@@ -137,26 +276,48 @@ export default function BookingCalendar({
       return;
     }
 
-    onAddProductToTab(selectedBooking.id, quickOrderProductId, qty);
+    onAddProductToTab(selectedBooking.id, quickOrderProductId, qty, quickOrderClientId || undefined);
     
     // Update local selectedBooking object to reflect the changes immediately in UI
-    const updatedTab = [...selectedBooking.barTab];
-    const existingIndex = updatedTab.findIndex(item => item.productId === quickOrderProductId);
-    if (existingIndex >= 0) {
-      updatedTab[existingIndex].qty += qty;
+    if (quickOrderClientId && selectedBooking.clients) {
+      const updatedClients = selectedBooking.clients.map(c => {
+        if (c.id !== quickOrderClientId) return c;
+        const updatedTab = [...c.barTab];
+        const existingIdx = updatedTab.findIndex(item => item.productId === quickOrderProductId);
+        if (existingIdx >= 0) {
+          updatedTab[existingIdx].qty += qty;
+        } else {
+          updatedTab.push({
+            productId: quickOrderProductId,
+            name: targetProduct.name,
+            qty: qty,
+            price: targetProduct.price
+          });
+        }
+        return { ...c, barTab: updatedTab };
+      });
+      setSelectedBooking({
+        ...selectedBooking,
+        clients: updatedClients
+      });
     } else {
-      updatedTab.push({
-        productId: quickOrderProductId,
-        name: targetProduct.name,
-        qty: qty,
-        price: targetProduct.price
+      const updatedTab = [...selectedBooking.barTab];
+      const existingIndex = updatedTab.findIndex(item => item.productId === quickOrderProductId);
+      if (existingIndex >= 0) {
+        existingIndex >= 0 ? (updatedTab[existingIndex].qty += qty) : null;
+      } else {
+        updatedTab.push({
+          productId: quickOrderProductId,
+          name: targetProduct.name,
+          qty: qty,
+          price: targetProduct.price
+        });
+      }
+      setSelectedBooking({
+        ...selectedBooking,
+        barTab: updatedTab
       });
     }
-
-    setSelectedBooking({
-      ...selectedBooking,
-      barTab: updatedTab
-    });
 
     setQuickOrderProductId('');
     setQuickOrderQty(1);
@@ -164,15 +325,29 @@ export default function BookingCalendar({
   };
 
   // Delete product row from active court reservation tab
-  const handleRemoveProductFromTabId = (productId: string) => {
+  const handleRemoveProductFromTabId = (productId: string, clientId?: string) => {
     if (!selectedBooking) return;
-    onRemoveProductFromTab(selectedBooking.id, productId);
+    onRemoveProductFromTab(selectedBooking.id, productId, clientId);
 
-    const updatedTab = selectedBooking.barTab.filter(item => item.productId !== productId);
-    setSelectedBooking({
-      ...selectedBooking,
-      barTab: updatedTab
-    });
+    if (clientId && selectedBooking.clients) {
+      const updatedClients = selectedBooking.clients.map(c => {
+        if (c.id !== clientId) return c;
+        return {
+          ...c,
+          barTab: c.barTab.filter(item => item.productId !== productId)
+        };
+      });
+      setSelectedBooking({
+        ...selectedBooking,
+        clients: updatedClients
+      });
+    } else {
+      const updatedTab = selectedBooking.barTab.filter(item => item.productId !== productId);
+      setSelectedBooking({
+        ...selectedBooking,
+        barTab: updatedTab
+      });
+    }
   };
 
   // Complete booking payment and register sale totals
@@ -181,6 +356,27 @@ export default function BookingCalendar({
     onCheckoutBooking(selectedBooking.id, paymentMethod);
     setSelectedBooking(null);
     setIsCheckingOut(false);
+  };
+
+  // Complete individual client checkout payment
+  const handleFinalizeClientCheckout = () => {
+    if (!selectedBooking || !checkingOutClientId) return;
+    onCheckoutClientShare(selectedBooking.id, checkingOutClientId, clientCheckoutMethod);
+    
+    // Update local state is checked out as green paid
+    if (selectedBooking.clients) {
+      const updatedClients = selectedBooking.clients.map(c => 
+        c.id === checkingOutClientId ? { ...c, paid: true, paymentMethod: clientCheckoutMethod } : c
+      );
+      const allPaid = updatedClients.every(c => c.paid);
+      setSelectedBooking({
+        ...selectedBooking,
+        clients: updatedClients,
+        paid: allPaid,
+        status: allPaid ? 'completado' : selectedBooking.status
+      });
+    }
+    setCheckingOutClientId(null);
   };
 
   return (
@@ -505,68 +701,284 @@ export default function BookingCalendar({
               <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-100">
                 
                 {/* Panel canilla izquierda: consumos / bar list */}
-                <div className="p-6 space-y-4">
-                  <div className="flex items-center gap-2">
-                    <ListOrdered size={16} className="text-slate-500" />
-                    <h4 className="font-bold text-slate-800 text-sm">Resumen de Consumos</h4>
-                  </div>
-
-                  <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
-                    <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl border border-slate-100 text-xs">
-                      <span className="font-semibold text-slate-700">Reserva de Cancha (90 minutos)</span>
-                      <span className="font-bold text-slate-900">{formatPrice(selectedBooking.courtPrice)}</span>
+                <div className="p-6 space-y-4 max-h-[580px] overflow-y-auto">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <ListOrdered size={16} className="text-slate-500" />
+                      <h4 className="font-bold text-slate-800 text-sm">Cuentas y Consumos</h4>
                     </div>
-
-                    {selectedBooking.barTab.length === 0 ? (
-                      <div className="text-center py-6 border border-dashed border-slate-100 rounded-xl text-xs text-slate-400">
-                        No hay bebidas o insumos cargados a esta cancha todavía.
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        {selectedBooking.barTab.map(item => (
-                          <div key={item.productId} className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-xl border border-slate-50 transition-colors text-xs gap-2">
-                            <div className="flex-1 min-w-0">
-                              <h5 className="font-semibold text-slate-900 truncate">{item.name}</h5>
-                              <p className="text-[10px] text-slate-400">
-                                {item.qty} un. x {formatPrice(item.price)}
-                              </p>
-                            </div>
-                            <div className="flex items-center gap-3">
-                              <span className="font-bold text-slate-950">{formatPrice(item.price * item.qty)}</span>
-                              {!selectedBooking.paid && (
-                                <button 
-                                  type="button"
-                                  id={`remove-product-from-tab-${item.productId}`}
-                                  onClick={() => handleRemoveProductFromTabId(item.productId)}
-                                  className="text-slate-400 hover:text-rose-500 p-1.5 hover:bg-rose-50 rounded-md transition-colors"
-                                  title="Eliminar consumo"
-                                >
-                                  <Trash2 size={14} />
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                    {selectedBooking.clients && selectedBooking.clients.length > 0 && (
+                      <span className="text-[10px] font-black uppercase bg-purple-100 text-[#5B21B6] border border-[#DDD6FE] px-2 py-0.5 rounded-sm">
+                         👥 Cuenta Dividida ({selectedBooking.clients.length})
+                      </span>
                     )}
                   </div>
 
+                  {/* SECTION: Standard Court Price if no client splitting is activated */}
+                  {!selectedBooking.clients || selectedBooking.clients.length === 0 ? (
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl border border-slate-100 text-xs text-slate-900">
+                          <span className="font-semibold text-slate-700">Reserva de Cancha (90 minutos)</span>
+                          <span className="font-bold text-slate-900">{formatPrice(selectedBooking.courtPrice)}</span>
+                        </div>
+
+                        <div className="text-xs font-bold text-slate-500 uppercase tracking-widest pt-2">
+                          🛒 Consumos Generales del Pitch
+                        </div>
+
+                        {selectedBooking.barTab.length === 0 ? (
+                          <div className="text-center py-6 border border-dashed border-slate-100 rounded-xl text-xs text-slate-400">
+                            No hay bebidas o insumos cargados a esta cancha todavía.
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            {selectedBooking.barTab.map(item => (
+                              <div key={item.productId} className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-xl border border-slate-50 transition-colors text-xs gap-2">
+                                <div className="flex-1 min-w-0">
+                                  <h5 className="font-semibold text-slate-900 truncate">{item.name}</h5>
+                                  <p className="text-[10px] text-slate-400">
+                                    {item.qty} un. x {formatPrice(item.price)}
+                                  </p>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  <span className="font-bold text-slate-950">{formatPrice(item.price * item.qty)}</span>
+                                  {!selectedBooking.paid && (
+                                    <button 
+                                      type="button"
+                                      id={`remove-product-from-tab-${item.productId}`}
+                                      onClick={() => handleRemoveProductFromTabId(item.productId)}
+                                      className="text-slate-400 hover:text-rose-500 p-1.5 hover:bg-rose-50 rounded-md transition-colors"
+                                      title="Eliminar consumo"
+                                    >
+                                      <Trash2 size={14} />
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Prompts to enable multi-client split */}
+                      {!selectedBooking.paid && (
+                        <div className="bg-slate-50 border border-dashed border-slate-200 p-4 rounded-2xl space-y-2 text-center">
+                          <Users size={20} className="mx-auto text-slate-400" />
+                          <h5 className="font-bold text-xs text-slate-700">¿Dividir cuenta entre jugadores?</h5>
+                          <p className="text-[10px] text-slate-500 leading-relaxed">
+                            Carga a los clientes de este turno para dividir el importe total de la cancha y registrar los consumos individuales del bar para cada uno.
+                          </p>
+                          <button
+                            type="button"
+                            id="enable-splitting-btn"
+                            onClick={handleInitializeMultiClients}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white hover:bg-slate-800 text-[10px] font-black rounded-lg transition-all cursor-pointer shadow-sm"
+                          >
+                            Habilitar Carga de Clientes
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    /* SECTION: Multi-clients layout splitting is ACTIVE */
+                    <div className="space-y-4">
+                      {/* General unassigned shared drinks bar tab */}
+                      {selectedBooking.barTab.length > 0 && (
+                        <div className="bg-amber-50/40 border border-amber-100 p-3 rounded-2xl space-y-2">
+                          <div className="text-[10.5px] font-extrabold text-amber-800 uppercase tracking-widest flex items-center justify-between">
+                            <span>🍺 Consumos Generales sin registrar</span>
+                            <span className="text-[9.5px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">Común</span>
+                          </div>
+                          <div className="space-y-1.5">
+                            {selectedBooking.barTab.map(item => (
+                              <div key={item.productId} className="flex items-center justify-between text-xs gap-1">
+                                <span className="text-slate-700 truncate max-w-[160px] font-medium">{item.name} ({item.qty} un.)</span>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-bold text-slate-950">{formatPrice(item.price * item.qty)}</span>
+                                  {!selectedBooking.paid && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRemoveProductFromTabId(item.productId)}
+                                      className="text-slate-400 hover:text-rose-600 p-1 rounded hover:bg-rose-50"
+                                    >
+                                      <X size={12} />
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Render Clients cards list */}
+                      <div className="space-y-3">
+                        <div className="text-xs font-black text-slate-500 uppercase tracking-wider">
+                          Clientes en Cancha & Cuentas correspondientes
+                        </div>
+
+                        {selectedBooking.clients.map(c => {
+                          const cBarTotal = c.barTab.reduce((acc, item) => acc + (item.price * item.qty), 0);
+                          const cTotalDue = c.courtShare + cBarTotal;
+                          
+                          return (
+                            <div 
+                              key={c.id} 
+                              className={`p-3.5 rounded-2xl border transition-all space-y-2.5 ${
+                                c.paid 
+                                  ? 'bg-slate-50 border-slate-200' 
+                                  : 'bg-white border-slate-150 border-slate-200 shadow-xs'
+                              }`}
+                            >
+                              <div className="flex items-start justify-between gap-1">
+                                <div className="min-w-0">
+                                  <h5 className="font-extrabold text-xs text-slate-950 truncate flex items-center gap-1.5">
+                                    <span className={`w-1.5 h-1.5 rounded-full ${c.paid ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                                    {c.name}
+                                  </h5>
+                                  {c.phone && <p className="text-[9px] text-slate-400 font-medium">Cel: {c.phone}</p>}
+                                </div>
+
+                                <div className="flex items-center gap-2 shrink-0">
+                                  {c.paid ? (
+                                    <span className="text-[9px] font-black uppercase text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-sm">
+                                      PAGADO ({c.paymentMethod})
+                                    </span>
+                                  ) : (
+                                    <>
+                                      <span className="text-[9px] font-black uppercase text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-sm">
+                                        CON DEUDA
+                                      </span>
+                                      {!selectedBooking.paid && (
+                                        <button
+                                          type="button"
+                                          onClick={() => handleDeleteClient(c.id)}
+                                          className="text-slate-400 hover:text-rose-600 p-1 rounded hover:bg-slate-100 transition-colors cursor-pointer"
+                                          title="Quitar cliente"
+                                        >
+                                          <Trash2 size={13} />
+                                        </button>
+                                      )}
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Divididos: Court and Bar info */}
+                              <div className="bg-slate-50/50 p-2.5 rounded-xl border border-slate-100 space-y-2 text-xs">
+                                {/* Court share input or text */}
+                                <div className="flex items-center justify-between">
+                                  <span className="text-slate-500 font-medium">Aporte Cancha:</span>
+                                  {c.paid || selectedBooking.paid ? (
+                                    <span className="font-bold text-slate-900">{formatPrice(c.courtShare)}</span>
+                                  ) : (
+                                    <div className="flex items-center gap-1">
+                                      <span className="text-[10px] text-slate-400">Gs.</span>
+                                      <input 
+                                        type="number"
+                                        value={c.courtShare}
+                                        step="1000"
+                                        onChange={(e) => handleUpdateClientShare(c.id, Number(e.target.value))}
+                                        className="w-20 px-1.5 py-0.5 border border-slate-300 rounded text-center text-xs font-black bg-white text-slate-950"
+                                      />
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Client's BarTab items */}
+                                {c.barTab.length > 0 && (
+                                  <div className="pt-1.5 border-t border-slate-100 space-y-1.5">
+                                    <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">🛒 Consumo Individual:</div>
+                                    {c.barTab.map(item => (
+                                      <div key={item.productId} className="flex items-center justify-between text-[11px] gap-2">
+                                        <span className="text-slate-700 truncate max-w-[130px]">{item.name} (x{item.qty})</span>
+                                        <div className="flex items-center gap-2">
+                                          <span className="font-bold text-slate-950">{formatPrice(item.price * item.qty)}</span>
+                                          {!c.paid && !selectedBooking.paid && (
+                                            <button
+                                              type="button"
+                                              onClick={() => handleRemoveProductFromTabId(item.productId, c.id)}
+                                              className="text-slate-400 hover:text-rose-650 p-0.5 hover:bg-slate-100"
+                                              title="Quitar consumo"
+                                            >
+                                              <X size={10} />
+                                            </button>
+                                          )}
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+
+                                {/* Sum / total breakdown per client */}
+                                <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-slate-900 font-extrabold">
+                                  <span>Total de {c.name}:</span>
+                                  <span>{formatPrice(cTotalDue)}</span>
+                                </div>
+                              </div>
+
+                              {/* Client Checkout Operation trigger */}
+                              {!c.paid && !selectedBooking.paid && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setCheckingOutClientId(c.id);
+                                    setClientCheckoutMethod('efectivo');
+                                  }}
+                                  className="w-full py-1.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 text-[10.5px] font-black rounded-xl transition-all flex items-center justify-center gap-1 cursor-pointer"
+                                >
+                                  <DollarSign size={12} /> Cobrar Parte ({formatPrice(cTotalDue)})
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Calculations breakdown */}
-                  <div className="pt-3 border-t border-slate-100 space-y-1.5 text-xs">
+                  <div className="pt-3 border-t border-slate-150 space-y-1.5 text-xs">
                     <div className="flex justify-between text-slate-500">
-                      <span>Cancha</span>
+                      <span>Cancha Base</span>
                       <span>{formatPrice(selectedBooking.courtPrice)}</span>
                     </div>
-                    <div className="flex justify-between text-slate-500">
-                      <span>Bebidas / Insumos Bar</span>
-                      <span>{formatPrice(selectedBooking.barTab.reduce((a, b) => a + (b.price * b.qty), 0))}</span>
-                    </div>
-                    <div className="flex justify-between text-base font-extrabold text-slate-950 pt-1 border-t border-slate-50">
-                      <span>Monto Total</span>
+                    {selectedBooking.clients && selectedBooking.clients.length > 0 && (
+                      <>
+                        {selectedBooking.barTab.length > 0 && (
+                          <div className="flex justify-between text-slate-500">
+                            <span>Consumo Común / General</span>
+                            <span>{formatPrice(selectedBooking.barTab.reduce((a,b) => a + (b.price * b.qty), 0))}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between text-slate-500">
+                          <span>Consumo Individual asignado</span>
+                          <span>
+                            {formatPrice(
+                              selectedBooking.clients.reduce((total, c) => {
+                                return total + c.barTab.reduce((sub, item) => sub + (item.price * item.qty), 0);
+                              }, 0)
+                            )}
+                          </span>
+                        </div>
+                      </>
+                    )}
+                    {(!selectedBooking.clients || selectedBooking.clients.length === 0) && (
+                      <div className="flex justify-between text-slate-500">
+                        <span>Bebidas / Insumos Bar</span>
+                        <span>{formatPrice(selectedBooking.barTab.reduce((a, b) => a + (b.price * b.qty), 0))}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-base font-extrabold text-slate-950 pt-1 border-t border-slate-100">
+                      <span>Monto Total a Recaudar</span>
                       <span>
                         {formatPrice(
                           selectedBooking.courtPrice + 
-                          selectedBooking.barTab.reduce((a, b) => a + (b.price * b.qty), 0)
+                          selectedBooking.barTab.reduce((a, b) => a + (b.price * b.qty), 0) +
+                          (selectedBooking.clients?.reduce((total, c) => {
+                            return total + c.barTab.reduce((sub, item) => sub + (item.price * item.qty), 0);
+                          }, 0) || 0)
                         )}
                       </span>
                     </div>
@@ -575,103 +987,262 @@ export default function BookingCalendar({
 
                 {/* Panel canilla derecha: agregar orden o cobrar */}
                 <div className="p-6 space-y-5">
+                  {/* Optional Alert of share discrepancy */}
+                  {selectedBooking.clients && selectedBooking.clients.length > 0 && !selectedBooking.paid && (
+                    <>
+                      {/* Share Warning notice if sums do not match courtPrice */}
+                      {(() => {
+                        const totalSharesSum = selectedBooking.clients.reduce((sum, c) => sum + c.courtShare, 0);
+                        const isShareMismatch = totalSharesSum !== selectedBooking.courtPrice;
+                        if (isShareMismatch) {
+                          return (
+                            <div className="bg-amber-50 border border-amber-200 p-3 rounded-2xl flex flex-col gap-1.5 text-[10.5px] text-amber-850">
+                              <div className="flex items-start gap-1.5 font-extrabold leading-tight text-amber-900">
+                                <AlertTriangle size={14} className="shrink-0 text-amber-600" />
+                                <span>La suma de aportes individuales ({formatPrice(totalSharesSum)}) difiere del valor real de cancha ({formatPrice(selectedBooking.courtPrice)}).</span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={handleReSplitEqually}
+                                className="font-extrabold text-[#78350F] hover:text-[#451A03] bg-[#FEF3C7] border border-[#FDE68A] py-1 px-2.5 rounded-lg text-xs cursor-pointer text-center"
+                              >
+                                Dividir en Partes Iguales
+                              </button>
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()}
+                    </>
+                  )}
+
+                  {/* SECTION FOR SUB-CLIENT CHECKOUT FLOATING ACTION */}
+                  {checkingOutClientId && !selectedBooking.paid ? (
+                    <div className="bg-emerald-50/50 p-4 rounded-3xl border border-emerald-100 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h5 className="font-extrabold text-xs text-emerald-950 uppercase tracking-widest flex items-center gap-1.5">
+                          <DollarSign size={14} className="text-emerald-600 animate-pulse" />
+                          Cobrar a: {selectedBooking.clients?.find(c => c.id === checkingOutClientId)?.name}
+                        </h5>
+                        <button
+                          type="button"
+                          onClick={() => setCheckingOutClientId(null)}
+                          className="text-[10px] text-slate-400 hover:text-slate-650 font-extrabold uppercase tracking-wider cursor-pointer"
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+
+                      <div className="space-y-1.5 text-xs text-slate-900">
+                        <div className="flex justify-between text-slate-600 font-medium">
+                          <span>Aporte de Cancha:</span>
+                          <span>{formatPrice(selectedBooking.clients?.find(c => c.id === checkingOutClientId)?.courtShare || 0)}</span>
+                        </div>
+                        <div className="flex justify-between text-slate-600 font-medium">
+                          <span>Consumo Individual de Bar:</span>
+                          <span>
+                            {formatPrice(
+                              selectedBooking.clients?.find(c => c.id === checkingOutClientId)?.barTab.reduce((a, b) => a + (b.qty * b.price), 0) || 0
+                            )}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-sm font-black text-[#0B1528] pt-2 border-t border-slate-200">
+                          <span>Total de este Cliente:</span>
+                          <span className="text-emerald-800 font-bold bg-emerald-100/50 px-2 rounded-md">
+                            {formatPrice(
+                              (selectedBooking.clients?.find(c => c.id === checkingOutClientId)?.courtShare || 0) +
+                              (selectedBooking.clients?.find(c => c.id === checkingOutClientId)?.barTab.reduce((a, b) => a + (b.qty * b.price), 0) || 0)
+                            )}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Método de Pago para Caja</label>
+                        <div className="grid grid-cols-3 gap-1">
+                          {(['efectivo', 'transferencia', 'tarjeta'] as const).map(method => (
+                            <button
+                              key={method}
+                              type="button"
+                              onClick={() => setClientCheckoutMethod(method)}
+                              className={`py-2 text-[10px] font-black uppercase rounded-xl border transition-all cursor-pointer ${
+                                clientCheckoutMethod === method
+                                  ? 'border-emerald-600 bg-emerald-600 text-white shadow-xs'
+                                  : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                              }`}
+                            >
+                              {method}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleFinalizeClientCheckout}
+                        className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-black rounded-xl transition-all cursor-pointer shadow-md text-center"
+                      >
+                        Registrar Cobro Individual
+                      </button>
+                    </div>
+                  ) : null}
+
                   {!selectedBooking.paid ? (
                     <>
-                      {/* Sub-interface normal o checkout */}
-                      {!isCheckingOut ? (
-                        <>
-                          {/* Agregar Consumos */}
-                          <div className="space-y-3">
-                            <div className="flex items-center gap-2">
-                              <PlusCircle className="text-amber-500" size={16} />
-                              <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">Cargar Bebida / Accesorio</h4>
-                            </div>
+                      {/* Multi client loader list form (only visible if multi-client is enabled) */}
+                      {selectedBooking.clients && selectedBooking.clients.length > 0 && (
+                        <div className="bg-[#0F1729]/5 p-4 rounded-3xl border border-slate-100 space-y-3">
+                          <div className="flex items-center gap-1.5">
+                            <Users size={14} className="text-slate-600" />
+                            <h5 className="font-extrabold text-xs text-slate-800 uppercase tracking-widest">Cargar Otro Jugador / Cliente</h5>
+                          </div>
 
-                            <form onSubmit={handleAddProductToTabSubmit} className="space-y-3">
+                          <form onSubmit={handleAddClientToList} className="space-y-2">
+                            <div className="grid grid-cols-2 gap-2">
+                              <input
+                                type="text"
+                                placeholder="Nombre completo"
+                                required
+                                value={newClientName}
+                                onChange={(e) => setNewClientName(e.target.value)}
+                                className="px-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-white text-slate-950 font-bold"
+                              />
+                              <input
+                                type="tel"
+                                placeholder="Celular"
+                                value={newClientPhone}
+                                onChange={(e) => setNewClientPhone(e.target.value)}
+                                className="px-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-white text-slate-950 font-bold"
+                              />
+                            </div>
+                            <button
+                              type="submit"
+                              className="w-full py-1.5 bg-slate-950 hover:bg-slate-800 text-white rounded-lg text-[10px] font-black tracking-wider uppercase transition-all cursor-pointer flex items-center justify-center gap-1"
+                            >
+                              <Plus size={14} /> Añadir a Cancha y Dividir
+                            </button>
+                          </form>
+                        </div>
+                      )}
+
+                      {/* Add consumptions to bar forms */}
+                      {!isCheckingOut && !checkingOutClientId && (
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <PlusCircle className="text-amber-500" size={16} />
+                            <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">Cargar Bebida / Accesorio</h4>
+                          </div>
+
+                          <form onSubmit={handleAddProductToTabSubmit} className="space-y-3">
+                            {/* Selector of client if any exist */}
+                            {selectedBooking.clients && selectedBooking.clients.length > 0 && (
                               <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-slate-500">Seleccionar Insumo del Bar</label>
-                                <select 
-                                  id="quick-order-product-select"
-                                  value={quickOrderProductId}
-                                  onChange={(e) => {
-                                    setQuickOrderProductId(e.target.value);
-                                    setOrderError('');
-                                  }}
-                                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs bg-slate-50"
+                                <label className="text-[10px] font-bold text-slate-500">Asignar Consumo a:</label>
+                                <select
+                                  value={quickOrderClientId}
+                                  onChange={(e) => setQuickOrderClientId(e.target.value)}
+                                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs bg-slate-50 font-bold text-slate-900"
                                 >
-                                  <option value="">-- Elige un producto --</option>
-                                  {products.map(p => (
-                                    <option key={p.id} value={p.id} disabled={p.stock <= 0}>
-                                      {p.name} (${p.price}) {p.stock <= 0 ? '[SIN STOCK]' : `[Disponibles: ${p.stock}]`}
+                                  <option value="">-- Consumo General / Común --</option>
+                                  {selectedBooking.clients.map(c => (
+                                    <option key={c.id} value={c.id} disabled={c.paid}>
+                                      {c.name} {c.paid ? '[OBLIGACIÓN PAGADA]' : ''}
                                     </option>
                                   ))}
                                 </select>
                               </div>
+                            )}
 
-                              <div className="flex gap-2">
-                                <div className="w-1/3 space-y-1">
-                                  <label className="text-[10px] font-bold text-slate-500">Cant.</label>
-                                  <input 
-                                    type="number" 
-                                    id="quick-order-qty"
-                                    min="1"
-                                    value={quickOrderQty}
-                                    onChange={(e) => setQuickOrderQty(Math.max(1, Number(e.target.value)))}
-                                    className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-slate-50 text-center font-bold"
-                                  />
-                                </div>
-                                <div className="w-2/3 flex items-end">
-                                  <button 
-                                    type="submit" 
-                                    id="add-item-to-tab-btn"
-                                    disabled={!quickOrderProductId}
-                                    className="w-full py-2 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400 text-white font-bold rounded-lg text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                                  >
-                                    <ShoppingBag size={14} /> Cargar a Cuenta
-                                  </button>
-                                </div>
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-bold text-slate-500">Seleccionar Insumo del Bar</label>
+                              <select 
+                                id="quick-order-product-select"
+                                value={quickOrderProductId}
+                                onChange={(e) => {
+                                  setQuickOrderProductId(e.target.value);
+                                  setOrderError('');
+                                }}
+                                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs bg-slate-50 text-slate-900 font-bold"
+                              >
+                                <option value="">-- Elige un producto --</option>
+                                {products.map(p => (
+                                  <option key={p.id} value={p.id} disabled={p.stock <= 0}>
+                                    {p.name} (${p.price}) {p.stock <= 0 ? '[SIN STOCK]' : `[Disponibles: ${p.stock}]`}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+
+                            <div className="flex gap-2">
+                              <div className="w-1/3 space-y-1">
+                                <label className="text-[10px] font-bold text-slate-500">Cant.</label>
+                                <input 
+                                  type="number" 
+                                  id="quick-order-qty"
+                                  min="1"
+                                  value={quickOrderQty}
+                                  onChange={(e) => setQuickOrderQty(Math.max(1, Number(e.target.value)))}
+                                  className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-slate-50 text-center font-bold text-slate-900"
+                                />
                               </div>
-                              {orderError && (
-                                <p className="text-[10px] text-rose-500 font-semibold">{orderError}</p>
-                              )}
-                            </form>
-                          </div>
+                              <div className="w-2/3 flex items-end">
+                                <button 
+                                  type="submit" 
+                                  id="add-item-to-tab-btn"
+                                  disabled={!quickOrderProductId}
+                                  className="w-full py-2 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400 text-white font-bold rounded-lg text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                                >
+                                  <ShoppingBag size={14} /> Cargar a Cuenta
+                                </button>
+                              </div>
+                            </div>
+                            {orderError && (
+                              <p className="text-[10px] text-rose-500 font-semibold">{orderError}</p>
+                            )}
+                          </form>
+                        </div>
+                      )}
 
-                          {/* Quick Checkout Actions */}
-                          <div className="pt-4 border-t border-slate-100 flex flex-col gap-2">
-                            <button
-                              id="checkout-trigger-btn"
-                              onClick={() => setIsCheckingOut(true)}
-                              className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold rounded-xl text-xs flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer"
-                            >
-                              <FileCheck2 size={16} /> Cobrar y Cerrar Cuenta
-                            </button>
-                            
-                            <button
-                              type="button"
-                              id="cancel-booking-btn"
-                              onClick={() => {
-                                if (confirm('¿Estás seguro de cancelar esta reserva?')) {
-                                  onCancelBooking(selectedBooking.id);
-                                  setSelectedBooking(null);
-                                }
-                              }}
-                              className="w-full py-2 border border-slate-100 hover:bg-rose-50 text-rose-500 hover:text-rose-700 text-xs font-semibold rounded-lg transition-all cursor-pointer"
-                            >
-                              Cancelar Turno
-                            </button>
-                          </div>
-                        </>
-                      ) : (
-                        /* COBRANDO METODO PAGO - PROCESO */
+                      {/* Standard whole account Checkouts */}
+                      {!isCheckingOut && !checkingOutClientId ? (
+                        <div className="pt-4 border-t border-slate-100 flex flex-col gap-2">
+                          <button
+                            id="checkout-trigger-btn"
+                            onClick={() => setIsCheckingOut(true)}
+                            className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold rounded-xl text-xs flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer"
+                          >
+                            <FileCheck2 size={16} /> Cobrar y Cerrar Cuenta Completa
+                          </button>
+                          
+                          <button
+                            type="button"
+                            id="cancel-booking-btn"
+                            onClick={() => {
+                              if (confirm('¿Estás seguro de cancelar esta reserva?')) {
+                                onCancelBooking(selectedBooking.id);
+                                setSelectedBooking(null);
+                              }
+                            }}
+                            className="w-full py-2 border border-slate-100 hover:bg-rose-50 text-rose-500 hover:text-rose-700 text-xs font-semibold rounded-lg transition-all cursor-pointer text-center"
+                          >
+                            Cancelar Turno
+                          </button>
+                        </div>
+                      ) : null}
+
+                      {isCheckingOut && !checkingOutClientId ? (
                         <div className="space-y-4">
                           <div className="flex items-center gap-2">
                             <DollarSign className="text-emerald-500" size={16} />
-                            <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">Finalizar Pago</h4>
+                            <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">Finalizar Pago Total</h4>
                           </div>
 
                           <div className="space-y-3">
-                            <p className="text-xs text-slate-500">Selecciona el método de pago para registrar el cobro en las planillas de caja.</p>
+                            <p className="text-xs text-slate-500">
+                              {selectedBooking.clients && selectedBooking.clients.length > 0 
+                                ? "Registrar el pago total de todas las cuentas restantes pendientes en el turno." 
+                                : "Selecciona el método de pago para registrar el cobro en las planillas de caja."}
+                            </p>
                             
                             <div className="space-y-2">
                               {['efectivo', 'transferencia', 'tarjeta'].map(method => (
@@ -690,11 +1261,11 @@ export default function BookingCalendar({
                                       id={`payment-radio-${method}`}
                                       checked={paymentMethod === method}
                                       onChange={() => setPaymentMethod(method as any)}
-                                      className="text-emerald-600 focus:ring-emerald-500" 
+                                      className="text-emerald-600 focus:ring-emerald-500 bg-white" 
                                     />
-                                    <span>{method}</span>
+                                    <span className="text-slate-900">{method}</span>
                                   </div>
-                                  <span className="text-[10px] text-slate-400 font-medium">Sin recargo</span>
+                                  <span className="text-[10px] text-slate-400 font-medium font-bold">Sin recargo</span>
                                 </label>
                               ))}
                             </div>
@@ -705,7 +1276,7 @@ export default function BookingCalendar({
                               type="button"
                               id="back-from-checkout"
                               onClick={() => setIsCheckingOut(false)}
-                              className="flex-1 py-2 text-xs font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
+                              className="flex-1 py-2 text-xs font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer text-center"
                             >
                               Volver
                             </button>
@@ -713,13 +1284,13 @@ export default function BookingCalendar({
                               type="button"
                               id="confirm-checkout-and-pay"
                               onClick={handleFinalizeCheckout}
-                              className="flex-1 py-2 text-xs font-bold text-white bg-emerald-500 hover:bg-emerald-600 rounded-lg transition-colors cursor-pointer"
+                              className="flex-1 py-2 text-xs font-bold text-white bg-emerald-500 hover:bg-emerald-600 rounded-lg transition-colors cursor-pointer text-center"
                             >
-                              Registrar Pago
+                              Registrar Pago Total
                             </button>
                           </div>
                         </div>
-                      )}
+                      ) : null}
                     </>
                   ) : (
                     /* CUENTA YA COBRADA / HISTORIAL COMPLETO */
@@ -731,7 +1302,7 @@ export default function BookingCalendar({
                         <h4 className="font-bold text-slate-900 text-sm">Reserva Finalizada Correctamente</h4>
                         <p className="text-xs text-slate-500 mt-1">El cobro ha sido ingresado en caja mediante método: <strong className="capitalize text-emerald-600">{selectedBooking.paymentMethod}</strong>.</p>
                       </div>
-                      <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 text-[10px] text-slate-400 font-mono w-full">
+                      <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 text-[10px] text-slate-400 font-mono w-full text-slate-900">
                         Ticket UUID: rx_b{selectedBooking.id.substring(2)}<br />
                         Asociado: {selectedBooking.clientName}<br />
                         Fecha: {selectedBooking.date} • {selectedBooking.startTime} hs
@@ -739,7 +1310,6 @@ export default function BookingCalendar({
                     </div>
                   )}
                 </div>
-
               </div>
             </motion.div>
           </div>

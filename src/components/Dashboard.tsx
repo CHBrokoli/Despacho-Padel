@@ -232,13 +232,13 @@ export default function Dashboard({
               </button>
             </div>
           ) : (
-            <div className="divide-y divide-[#334155]">
+            <div className="space-y-3">
               {upcomingBookings.map((b) => {
                 const totalBarAmount = b.barTab.reduce((total, item) => total + (item.price * item.qty), 0);
                 const grandTotal = b.courtPrice + totalBarAmount;
 
                 return (
-                  <div key={b.id} className="py-4 first:pt-0 last:pb-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div key={b.id} className="bg-[#0f172b] border border-[#334155]/60 hover:border-lime-400/30 transition-all p-4.5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <span className="text-slate-900 bg-lime-400 text-[10px] font-black px-2 py-0.5 rounded-sm uppercase tracking-wider font-mono">
@@ -290,7 +290,7 @@ export default function Dashboard({
         {/* Row Right: Warning and Actions */}
         <div className="space-y-6">
           {/* Low Stock Alerts Pane */}
-          <motion.div variants={itemVariants} className="bg-[#1E293B] rounded-3xl border border-[#334155] p-6 space-y-4">
+          <motion.div variants={itemVariants} className="bg-[#0f172b] rounded-3xl border border-[#334155] p-6 space-y-4">
             <div className="flex items-center gap-2">
               <span className="w-2 h-6 bg-amber-500 rounded-full"></span>
               <h2 className="text-base font-bold text-white">Estadísticas de Stock Mínimo</h2>
@@ -327,7 +327,7 @@ export default function Dashboard({
           </motion.div>
 
           {/* Rapid category summary */}
-          <motion.div variants={itemVariants} className="bg-[#1E293B] rounded-3xl border border-[#334155] p-6 space-y-4">
+          <motion.div variants={itemVariants} className="bg-[#0f172b] rounded-3xl border border-[#334155] p-6 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-6 bg-lime-400 rounded-full"></span>

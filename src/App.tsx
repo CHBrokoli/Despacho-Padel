@@ -143,7 +143,7 @@ export default function App() {
   };
 
   // 3. ADD PRODUCT TO COURT TAB (DEDUCTING STOCK AUTOMATICALLY)
-  const handleAddProductToTab = (bookingId: string, productId: string, qty: number) => {
+  const handleAddProductToTab = (bookingId: string, productId: string, qty: number, clientId?: string) => {
     const targetProduct = products.find(p => p.id === productId);
     if (!targetProduct || targetProduct.stock < qty) return;
 
@@ -156,23 +156,47 @@ export default function App() {
     const updatedBookings = bookings.map(b => {
       if (b.id !== bookingId) return b;
       
-      const tabCopy = [...b.barTab];
-      const existingIdx = tabCopy.findIndex(item => item.productId === productId);
-      
-      if (existingIdx >= 0) {
-        tabCopy[existingIdx] = {
-          ...tabCopy[existingIdx],
-          qty: tabCopy[existingIdx].qty + qty
-        };
-      } else {
-        tabCopy.push({
-          productId,
-          name: targetProduct.name,
-          qty,
-          price: targetProduct.price
+      if (clientId && b.clients) {
+        const updatedClients = b.clients.map(c => {
+          if (c.id !== clientId) return c;
+          const tabCopy = [...c.barTab];
+          const existingIdx = tabCopy.findIndex(item => item.productId === productId);
+          
+          if (existingIdx >= 0) {
+            tabCopy[existingIdx] = {
+              ...tabCopy[existingIdx],
+              qty: tabCopy[existingIdx].qty + qty
+            };
+          } else {
+            tabCopy.push({
+              productId,
+              name: targetProduct.name,
+              qty,
+              price: targetProduct.price
+            });
+          }
+          return { ...c, barTab: tabCopy };
         });
+        return { ...b, clients: updatedClients };
+      } else {
+        const tabCopy = [...b.barTab];
+        const existingIdx = tabCopy.findIndex(item => item.productId === productId);
+        
+        if (existingIdx >= 0) {
+          tabCopy[existingIdx] = {
+            ...tabCopy[existingIdx],
+            qty: tabCopy[existingIdx].qty + qty
+          };
+        } else {
+          tabCopy.push({
+            productId,
+            name: targetProduct.name,
+            qty,
+            price: targetProduct.price
+          });
+        }
+        return { ...b, barTab: tabCopy };
       }
-      return { ...b, barTab: tabCopy };
     });
 
     // Write a minor debug log
@@ -191,14 +215,21 @@ export default function App() {
   };
 
   // 4. REMOVE PRODUCT FROM TAB (RETURNING STOCK AUTOMATICALLY)
-  const handleRemoveProductFromTab = (bookingId: string, productId: string) => {
+  const handleRemoveProductFromTab = (bookingId: string, productId: string, clientId?: string) => {
     const booking = bookings.find(b => b.id === bookingId);
     if (!booking) return;
 
-    const ordItem = booking.barTab.find(item => item.productId === productId);
-    if (!ordItem) return;
+    let returnQty = 0;
+    if (clientId && booking.clients) {
+      const client = booking.clients.find(c => c.id === clientId);
+      const ordItem = client?.barTab.find(item => item.productId === productId);
+      if (ordItem) returnQty = ordItem.qty;
+    } else {
+      const ordItem = booking.barTab.find(item => item.productId === productId);
+      if (ordItem) returnQty = ordItem.qty;
+    }
 
-    const returnQty = ordItem.qty;
+    if (returnQty === 0) return;
 
     // Increase product stock back
     const updatedProducts = products.map(p => 
@@ -208,17 +239,29 @@ export default function App() {
     // Remove from tab copy
     const updatedBookings = bookings.map(b => {
       if (b.id !== bookingId) return b;
-      return {
-        ...b,
-        barTab: b.barTab.filter(item => item.productId !== productId)
-      };
+      
+      if (clientId && b.clients) {
+        const updatedClients = b.clients.map(c => {
+          if (c.id !== clientId) return c;
+          return {
+            ...c,
+            barTab: c.barTab.filter(item => item.productId !== productId)
+          };
+        });
+        return { ...b, clients: updatedClients };
+      } else {
+        return {
+          ...b,
+          barTab: b.barTab.filter(item => item.productId !== productId)
+        };
+      }
     });
 
     // Logging stock adjustment
     const newLog: StockAdjustment = {
       id: 'log_' + Date.now(),
       productId,
-      productName: ordItem.name,
+      productName: products.find(p => p.id === productId)?.name || 'Producto',
       qty: returnQty,
       type: 'ajuste',
       timestamp: new Date().toISOString(),
@@ -234,22 +277,124 @@ export default function App() {
     const booking = bookings.find(b => b.id === bookingId);
     if (!booking) return;
 
-    // Calculate invoice totals
-    const barSubtotal = booking.barTab.reduce((a, b) => a + (b.price * b.qty), 0);
-    const totalDue = booking.courtPrice + barSubtotal;
+    if (booking.clients && booking.clients.length > 0) {
+      // Find unpaid clients
+      const unpaidClients = booking.clients.filter(c => !c.paid);
+      let newSalesList = [...sales];
 
-    // Mark booking completed & paid
-    const updatedBookings = bookings.map(b => 
-      b.id === bookingId 
-        ? { ...b, paid: true, status: 'completado' as const, paymentMethod } 
-        : b
-    );
+      const updatedClients = booking.clients.map(c => {
+        if (c.paid) return c;
+        const clientSubtotal = c.courtShare + c.barTab.reduce((a, b) => a + (b.price * b.qty), 0);
+        
+        const newSale: Sale = {
+          id: 'sale_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+          timestamp: new Date().toISOString(),
+          items: c.barTab.map(item => {
+            const prod = products.find(p => p.id === item.productId);
+            return {
+              productId: item.productId,
+              name: item.name,
+              qty: item.qty,
+              price: item.price,
+              cost: prod ? prod.cost : 0
+            };
+          }),
+          total: clientSubtotal,
+          paymentMethod,
+          associatedBookingId: bookingId,
+          description: `Cierre cuenta de ${c.name} (Turno de ${booking.clientName} a las ${booking.startTime}hs) - Cancha + Consumos`
+        };
+        newSalesList.push(newSale);
+        return { ...c, paid: true, paymentMethod };
+      });
 
-    // Append to total sales (this includes Court fee + any beverages)
+      // General shared tab order
+      if (booking.barTab.length > 0) {
+        const generalBarSubtotal = booking.barTab.reduce((a, b) => a + (b.price * b.qty), 0);
+        const newSale: Sale = {
+          id: 'sale_' + Date.now() + '_gen',
+          timestamp: new Date().toISOString(),
+          items: booking.barTab.map(item => {
+            const prod = products.find(p => p.id === item.productId);
+            return {
+              productId: item.productId,
+              name: item.name,
+              qty: item.qty,
+              price: item.price,
+              cost: prod ? prod.cost : 0
+            };
+          }),
+          total: generalBarSubtotal,
+          paymentMethod,
+          associatedBookingId: bookingId,
+          description: `Consumo general sin asignar de cancha - Turno ${booking.clientName} (${booking.startTime}hs)`
+        };
+        newSalesList.push(newSale);
+      }
+
+      const updatedBookings = bookings.map(b => 
+        b.id === bookingId 
+          ? { ...b, paid: true, status: 'completado' as const, paymentMethod, clients: updatedClients, barTab: [] } 
+          : b
+      );
+
+      saveState(undefined, undefined, updatedBookings, newSalesList);
+    } else {
+      // Calculate invoice totals
+      const barSubtotal = booking.barTab.reduce((a, b) => a + (b.price * b.qty), 0);
+      const totalDue = booking.courtPrice + barSubtotal;
+
+      // Mark booking completed & paid
+      const updatedBookings = bookings.map(b => 
+        b.id === bookingId 
+          ? { ...b, paid: true, status: 'completado' as const, paymentMethod } 
+          : b
+      );
+
+      // Append to total sales (this includes Court fee + any beverages)
+      const newSale: Sale = {
+        id: 'sale_' + Date.now(),
+        timestamp: new Date().toISOString(),
+        items: booking.barTab.map(item => {
+          const prod = products.find(p => p.id === item.productId);
+          return {
+            productId: item.productId,
+            name: item.name,
+            qty: item.qty,
+            price: item.price,
+            cost: prod ? prod.cost : 0
+          };
+        }),
+        total: totalDue,
+        paymentMethod,
+        associatedBookingId: bookingId,
+        description: `Cierre cuenta Turno de ${booking.clientName} (${booking.startTime}hs) + Cancha`
+      };
+
+      const updatedSales = [...sales, newSale];
+      saveState(undefined, undefined, updatedBookings, updatedSales);
+    }
+  };
+
+  // 5.5 COBRAR CLIENTE INDIVIDUAL (CUENTA DIVIDIDA)
+  const handleCheckoutClientShare = (
+    bookingId: string,
+    clientId: string,
+    paymentMethod: 'efectivo' | 'transferencia' | 'tarjeta'
+  ) => {
+    const booking = bookings.find(b => b.id === bookingId);
+    if (!booking || !booking.clients) return;
+
+    const client = booking.clients.find(c => c.id === clientId);
+    if (!client || client.paid) return;
+
+    const clientSubtotal = client.courtShare + client.barTab.reduce((a, b) => a + (b.price * b.qty), 0);
+
+    // Create a sale for this client
     const newSale: Sale = {
-      id: 'sale_' + Date.now(),
+      id: 'sale_' + Date.now() + '_' + clientId.substring(2, 6),
       timestamp: new Date().toISOString(),
-      items: booking.barTab.map(item => {
+      items: client.barTab.map(item => {
         const prod = products.find(p => p.id === item.productId);
         return {
           productId: item.productId,
@@ -259,15 +404,40 @@ export default function App() {
           cost: prod ? prod.cost : 0
         };
       }),
-      // We store grand total
-      total: totalDue,
+      total: clientSubtotal,
       paymentMethod,
       associatedBookingId: bookingId,
-      description: `Cierre cuenta Turno de ${booking.clientName} (${booking.startTime}hs) + Cancha`
+      description: `Cierre parcial de ${client.name} (Turno de ${booking.clientName} a las ${booking.startTime}hs) - Cancha + Consumos`
     };
 
     const updatedSales = [...sales, newSale];
+
+    // Mark that specific client as paid
+    const updatedClients = booking.clients.map(c => 
+      c.id === clientId ? { ...c, paid: true, paymentMethod } : c
+    );
+
+    // Check if ALL clients are now paid
+    const allPaid = updatedClients.every(c => c.paid);
+
+    const updatedBookings = bookings.map(b => {
+      if (b.id !== bookingId) return b;
+      return {
+        ...b,
+        clients: updatedClients,
+        paid: allPaid,
+        status: allPaid ? ('completado' as const) : b.status,
+        paymentMethod: allPaid ? paymentMethod : b.paymentMethod
+      };
+    });
+
     saveState(undefined, undefined, updatedBookings, updatedSales);
+  };
+
+  // 5.8 UPDATE BOOKING GENERICALLY
+  const handleUpdateBooking = (updatedBooking: Booking) => {
+    const updated = bookings.map(b => b.id === updatedBooking.id ? updatedBooking : b);
+    saveState(undefined, undefined, updated);
   };
 
   // 6. PROCESS POS BAR STANDALONE DIRECT SALES (DECREASES STOCK DIRECTLY)
@@ -572,6 +742,8 @@ export default function App() {
                   onAddProductToTab={handleAddProductToTab}
                   onRemoveProductFromTab={handleRemoveProductFromTab}
                   onCheckoutBooking={handleCheckoutBooking}
+                  onCheckoutClientShare={handleCheckoutClientShare}
+                  onUpdateBooking={handleUpdateBooking}
                   formatPrice={formatPrice}
                 />
               )}
