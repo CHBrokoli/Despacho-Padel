@@ -3,7 +3,7 @@ export interface Court {
   name: string;
   type: 'Cristal' | 'Blindex' | 'Hormigón';
   color: string; // Tailwind color class for badges/borders
-  price90Min: number; // Price for 90 minutes slot
+  pricePerHour: number; // Price per hour
 }
 
 export interface Product {

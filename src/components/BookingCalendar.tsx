@@ -31,21 +31,64 @@ interface BookingCalendarProps {
   onCheckoutBooking: (bookingId: string, paymentMethod: 'efectivo' | 'transferencia' | 'tarjeta') => void;
   onCheckoutClientShare: (bookingId: string, clientId: string, paymentMethod: 'efectivo' | 'transferencia' | 'tarjeta') => void;
   onUpdateBooking: (booking: Booking) => void;
+  onUpdateCourt?: (court: Court) => void;
   formatPrice: (amount: number) => string;
 }
 
 const TIME_SLOTS = [
-  { start: '08:00', end: '09:30' },
-  { start: '09:30', end: '11:00' },
-  { start: '11:00', end: '12:30' },
-  { start: '12:30', max: '14:00', end: '14:00' },
-  { start: '14:00', end: '15:30' },
-  { start: '15:30', end: '17:00' },
-  { start: '17:00', end: '18:30' },
-  { start: '18:30', end: '20:00' },
-  { start: '20:00', end: '21:30' },
-  { start: '21:30', end: '23:00' }
+  { start: '08:00', end: '09:00' },
+  { start: '09:00', end: '10:00' },
+  { start: '10:00', end: '11:00' },
+  { start: '11:00', end: '12:00' },
+  { start: '12:00', end: '13:00' },
+  { start: '13:00', end: '14:00' },
+  { start: '14:00', end: '15:00' },
+  { start: '15:00', end: '16:00' },
+  { start: '16:00', end: '17:00' },
+  { start: '17:00', end: '18:00' },
+  { start: '18:00', end: '19:00' },
+  { start: '19:00', end: '20:00' },
+  { start: '20:00', end: '21:00' },
+  { start: '21:00', end: '22:00' },
+  { start: '22:00', end: '23:00' }
 ];
+
+const ALL_TIME_CHOICES = [
+  '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
+  '12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30',
+  '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30',
+  '20:00', '20:30', '21:00', '21:30', '22:00', '22:30', '23:00', '23:30', '24:00'
+];
+
+const timeToNumber = (t: string): number => {
+  if (!t) return 0;
+  const parts = t.split(':');
+  const hours = parseInt(parts[0], 10) || 0;
+  const minutes = parseInt(parts[1], 10) || 0;
+  return hours + minutes / 60;
+};
+
+const formatTo12Hour = (time24: string): string => {
+  if (!time24) return '';
+  const [hoursStr, minutesStr] = time24.split(':');
+  const hours = parseInt(hoursStr, 10);
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  const hours12 = hours % 12 === 0 ? 12 : hours % 12;
+  const minutes = minutesStr || '00';
+  return `${hours12.toString().padStart(2, '0')}:${minutes} ${ampm}`;
+};
+
+const calculatePrice = (pricePerHour: number, start: string, end: string): number => {
+  if (!start || !end) return 0;
+  
+  const startNum = timeToNumber(start);
+  const endNum = timeToNumber(end);
+  
+  if (endNum <= startNum) return 0;
+  
+  const durationHours = endNum - startNum;
+  return Math.round(durationHours * pricePerHour);
+};
 
 export default function BookingCalendar({
   bookings,
@@ -60,19 +103,64 @@ export default function BookingCalendar({
   onCheckoutBooking,
   onCheckoutClientShare,
   onUpdateBooking,
+  onUpdateCourt,
   formatPrice
 }: BookingCalendarProps) {
   // Modal states
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<{ courtId: string; startTime: string } | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [isPricingPanelOpen, setIsPricingPanelOpen] = useState(false);
 
   // Form states for booking creation
   const [clientName, setClientName] = useState('');
   const [clientPhone, setClientPhone] = useState('');
   const [formCourtId, setFormCourtId] = useState('');
   const [formStartTime, setFormStartTime] = useState('');
+  const [formEndTime, setFormEndTime] = useState('');
   const [formCustomPrice, setFormCustomPrice] = useState<number>(0);
+
+  const selectedCourtObj = courts.find(c => c.id === formCourtId);
+  const hourlyRateVal = selectedCourtObj ? selectedCourtObj.pricePerHour : 0;
+  const durationHoursVal = formStartTime && formEndTime ? (timeToNumber(formEndTime) - timeToNumber(formStartTime)) : 0;
+
+  const handleStartTimeChange = (newStart: string) => {
+    setFormStartTime(newStart);
+    const startNum = timeToNumber(newStart);
+    const currentEndNum = timeToNumber(formEndTime);
+    
+    let nextEnd = formEndTime;
+    if (currentEndNum <= startNum) {
+      const defaultEndNum = startNum + 1.0;
+      const matchingEnd = ALL_TIME_CHOICES.find(t => timeToNumber(t) === defaultEndNum);
+      nextEnd = matchingEnd || ALL_TIME_CHOICES.find(t => timeToNumber(t) > startNum) || '24:00';
+      setFormEndTime(nextEnd);
+    }
+    
+    const court = courts.find(c => c.id === formCourtId);
+    if (court) {
+      const calculated = calculatePrice(court.pricePerHour, newStart, nextEnd);
+      setFormCustomPrice(calculated);
+    }
+  };
+
+  const handleEndTimeChange = (newEnd: string) => {
+    setFormEndTime(newEnd);
+    const court = courts.find(c => c.id === formCourtId);
+    if (court) {
+      const calculated = calculatePrice(court.pricePerHour, formStartTime, newEnd);
+      setFormCustomPrice(calculated);
+    }
+  };
+
+  const handleFormCourtChange = (newCourtId: string) => {
+    setFormCourtId(newCourtId);
+    const court = courts.find(c => c.id === newCourtId);
+    if (court) {
+      const calculated = calculatePrice(court.pricePerHour, formStartTime, formEndTime);
+      setFormCustomPrice(calculated);
+    }
+  };
 
   // Quick order addition for selected booking details view
   const [quickOrderProductId, setQuickOrderProductId] = useState('');
@@ -222,7 +310,16 @@ export default function BookingCalendar({
     setSelectedSlot({ courtId, startTime });
     setFormCourtId(courtId);
     setFormStartTime(startTime);
-    setFormCustomPrice(court ? court.price90Min : 24000);
+    
+    // Default duration is 1 hour
+    const startNum = timeToNumber(startTime);
+    const defaultEndNum = startNum + 1.0;
+    const defaultEndTime = ALL_TIME_CHOICES.find(t => timeToNumber(t) === defaultEndNum) || '24:00';
+    setFormEndTime(defaultEndTime);
+
+    const initialPrice = court ? calculatePrice(court.pricePerHour, startTime, defaultEndTime) : 16000;
+    setFormCustomPrice(initialPrice);
+    
     setClientName('');
     setClientPhone('');
     setIsCreateOpen(true);
@@ -237,10 +334,7 @@ export default function BookingCalendar({
   // Submit booking creation
   const handleCreateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!clientName.trim() || !formCourtId || !formStartTime) return;
-
-    const timeSlot = TIME_SLOTS.find(slot => slot.start === formStartTime);
-    const endTime = timeSlot ? timeSlot.end : '10:00';
+    if (!clientName.trim() || !formCourtId || !formStartTime || !formEndTime) return;
 
     const newBooking: Booking = {
       id: 'b_' + Date.now(),
@@ -249,7 +343,7 @@ export default function BookingCalendar({
       clientPhone: clientPhone.trim(),
       date: selectedDate,
       startTime: formStartTime,
-      endTime,
+      endTime: formEndTime,
       status: 'reservado',
       courtPrice: formCustomPrice,
       barTab: [],
@@ -393,6 +487,18 @@ export default function BookingCalendar({
         
         <div className="flex items-center gap-2">
           <button 
+            type="button"
+            onClick={() => setIsPricingPanelOpen(!isPricingPanelOpen)}
+            className={`text-xs font-bold px-4 py-2.5 border rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+              isPricingPanelOpen 
+                ? 'bg-lime-400 border-lime-400 text-slate-950 font-black' 
+                : 'bg-slate-800 hover:bg-[#334155] border-[#334155] text-slate-200'
+            }`}
+          >
+            <DollarSign size={14} />
+            <span>Tarifas / Hs</span>
+          </button>
+          <button 
             id="today-btn"
             onClick={() => onSetSelectedDate(new Date().toISOString().split('T')[0])}
             className="text-xs font-bold px-4 py-2.5 bg-slate-800 hover:bg-[#334155] border border-[#334155] text-slate-200 rounded-xl transition-all cursor-pointer"
@@ -409,6 +515,57 @@ export default function BookingCalendar({
         </div>
       </div>
 
+      {/* Pricing adjustment panel */}
+      <AnimatePresence>
+        {isPricingPanelOpen && (
+          <motion.div 
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="bg-[#1E293B] p-5 rounded-3xl border border-[#334155] shadow-lg space-y-4">
+              <div>
+                <h3 className="font-extrabold text-sm text-white">Configuración de Precios por Hora</h3>
+                <p className="text-[11px] text-slate-400">Establece el costo por hora personalizado para cada tipo de cancha.</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {courts.map(court => (
+                  <div key={court.id} className="bg-slate-900/60 p-4 rounded-2xl border border-[#334155] space-y-2">
+                    <div className="flex items-center gap-2 col-span-full">
+                      <span className="w-2.5 h-2.5 rounded-full bg-lime-400" />
+                      <span className="font-black text-xs text-white uppercase">{court.name}</span>
+                    </div>
+                    <div className="relative">
+                      <span className="absolute left-3 top-2 text-xs text-slate-500 font-extrabold">Gs.</span>
+                      <input 
+                        type="number"
+                        step="1000"
+                        min="0"
+                        value={court.pricePerHour}
+                        onChange={(e) => {
+                          if (onUpdateCourt) {
+                            onUpdateCourt({
+                              ...court,
+                              pricePerHour: Number(e.target.value) || 0
+                            });
+                          }
+                        }}
+                        className="w-full pl-10 pr-4 py-1.5 border border-slate-700 focus:border-lime-400 focus:outline-hidden rounded-xl text-xs bg-slate-950 font-bold text-white/[0.9]"
+                        placeholder="Precio por hora"
+                      />
+                    </div>
+                    <div className="text-[10px] text-slate-450 text-slate-400">
+                      Ref: Gs. {formatPrice(court.pricePerHour * 1.5)} por 90 min
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Main Grid View */}
       <div className="bg-[#1E293B] rounded-3xl border border-[#334155] shadow-xl overflow-hidden">
         {/* Table representation */}
@@ -420,7 +577,7 @@ export default function BookingCalendar({
                 {courts.map(court => (
                   <th key={court.id} className="p-4 text-xs font-bold text-slate-300 uppercase tracking-wider text-center w-[205px]">
                     <span className="block font-black text-white text-sm">{court.name}</span>
-                    <span className="text-[10px] text-slate-400 font-semibold lowercase">({court.type}) • {formatPrice(court.price90Min)}</span>
+                    <span className="text-[10px] text-slate-400 font-semibold lowercase">({court.type}) • {formatPrice(court.pricePerHour)} / hs</span>
                   </th>
                 ))}
               </tr>
@@ -430,75 +587,109 @@ export default function BookingCalendar({
                 return (
                   <tr key={slot.start} className="hover:bg-slate-800/20 transition-all">
                     {/* Time cell */}
-                    <td className="p-4 text-xs font-bold text-slate-350 text-slate-300 whitespace-nowrap align-middle border-r border-[#334155]/50 font-mono">
+                    <td className="p-4 text-xs font-bold text-slate-355 text-slate-300 whitespace-nowrap align-middle border-r border-[#334155]/50 font-mono">
                       <div className="flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-lime-450 bg-lime-400" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-lime-445 bg-lime-400" />
                         <span>{slot.start} - {slot.end}</span>
                       </div>
                     </td>
 
                     {/* Courts loop */}
                     {courts.map(court => {
-                      // Find booking starting at this specific slot and court
-                      const booking = bookings.find(
+                      // Find if there is any active booking covering this slot on this court
+                      const activeBooking = bookings.find(
                         b => b.date === selectedDate && 
                              b.courtId === court.id && 
-                             b.startTime === slot.start && 
-                             b.status !== 'cancelado'
+                             b.status !== 'cancelado' &&
+                             timeToNumber(b.startTime) < timeToNumber(slot.end) &&
+                             timeToNumber(b.endTime) > timeToNumber(slot.start)
                       );
 
-                      if (booking) {
-                        const totalBarItems = booking.barTab.reduce((acc, item) => acc + item.qty, 0);
-                        const isPaid = booking.paid;
+                      if (activeBooking) {
+                        // Check if this slot represents the starting block or close to it
+                        const isStartSlot = timeToNumber(slot.start) <= timeToNumber(activeBooking.startTime) && 
+                          timeToNumber(activeBooking.startTime) < timeToNumber(slot.end);
 
-                        return (
-                          <td key={court.id} className="p-2.5 align-middle text-center">
-                            <motion.button
-                              id={`booking-card-${booking.id}`}
-                              whileHover={{ scale: 1.01 }}
-                              whileTap={{ scale: 0.99 }}
-                              onClick={() => {
-                                setSelectedBooking(booking);
-                                setIsCheckingOut(false);
-                                setQuickOrderProductId('');
-                                setQuickOrderQty(1);
-                                setOrderError('');
-                              }}
-                              className={`w-full p-3.5 rounded-2xl border text-left cursor-pointer shadow-md transition-all ${
-                                isPaid 
-                                  ? 'bg-[#0F172A]/90 hover:bg-[#0F172A] border-[#334155] text-slate-400' 
-                                  : booking.status === 'completado'
-                                    ? 'bg-slate-800 border-[#334155] text-slate-300'
-                                    : 'bg-lime-400 hover:bg-lime-300 border-lime-400 text-slate-950 font-extrabold'
-                              }`}
-                            >
-                              <div className="flex items-center justify-between gap-2">
-                                <h4 className={`text-xs font-black truncate max-w-[120px] ${isPaid ? 'text-slate-300' : 'text-slate-950'}`}>{booking.clientName}</h4>
-                                <span className={`text-[8.5px] font-black px-1.5 py-0.5 rounded-sm uppercase tracking-wider ${
+                        if (isStartSlot) {
+                          const totalBarItems = activeBooking.barTab.reduce((acc, item) => acc + item.qty, 0);
+                          const isPaid = activeBooking.paid;
+
+                          return (
+                            <td key={court.id} className="p-2.5 align-middle text-center">
+                              <motion.button
+                                id={`booking-card-${activeBooking.id}`}
+                                whileHover={{ scale: 1.01 }}
+                                whileTap={{ scale: 0.99 }}
+                                onClick={() => {
+                                  setSelectedBooking(activeBooking);
+                                  setIsCheckingOut(false);
+                                  setQuickOrderProductId('');
+                                  setQuickOrderQty(1);
+                                  setOrderError('');
+                                }}
+                                className={`w-full p-3.5 rounded-2xl border text-left cursor-pointer shadow-md transition-all ${
                                   isPaid 
-                                    ? 'bg-slate-800 text-slate-400 border border-slate-700' 
-                                    : 'bg-slate-950/20 text-slate-950'
-                                }`}>
-                                  {isPaid ? 'PAGADO' : 'C/DEUDA'}
-                                </span>
-                              </div>
-                              <div className="mt-2 space-y-1">
-                                <p className={`text-[10px] font-mono flex items-center gap-1 ${isPaid ? 'text-slate-450 text-slate-400' : 'text-slate-900'}`}>
-                                  <span>{formatPrice(booking.courtPrice)}</span>
-                                </p>
-                                {totalBarItems > 0 && (
-                                  <span className={`inline-flex items-center gap-1 text-[9px] font-black rounded-lg px-2 py-0.5 ${
+                                    ? 'bg-[#0F172A]/90 hover:bg-[#0F172A] border-[#334155] text-slate-400' 
+                                    : activeBooking.status === 'completado'
+                                      ? 'bg-slate-800 border-[#334155] text-slate-300'
+                                      : 'bg-lime-400 hover:bg-lime-300 border-lime-400 text-slate-950 font-extrabold'
+                                }`}
+                              >
+                                <div className="flex items-center justify-between gap-2">
+                                  <h4 className={`text-xs font-black truncate max-w-[120px] ${isPaid ? 'text-slate-300' : 'text-slate-950'}`}>{activeBooking.clientName}</h4>
+                                  <span className={`text-[8.5px] font-black px-1.5 py-0.5 rounded-sm uppercase tracking-wider ${
                                     isPaid 
-                                      ? 'bg-slate-850 bg-slate-900 text-amber-500 border border-slate-800' 
-                                      : 'bg-slate-950/80 text-lime-400 font-bold'
+                                      ? 'bg-slate-800 text-slate-400 border border-slate-700' 
+                                      : 'bg-slate-950/20 text-slate-950'
                                   }`}>
-                                    🛒 Bar: {totalBarItems} art.
+                                    {isPaid ? 'PAGADO' : 'C/DEUDA'}
                                   </span>
-                                )}
-                              </div>
-                            </motion.button>
-                          </td>
-                        );
+                                </div>
+                                <div className="mt-2 space-y-1">
+                                  <p className={`text-[10px] font-mono flex items-center gap-1 ${isPaid ? 'text-slate-400' : 'text-slate-900'}`}>
+                                    <span>{formatPrice(activeBooking.courtPrice)}</span>
+                                  </p>
+                                  {totalBarItems > 0 && (
+                                    <span className={`inline-flex items-center gap-1 text-[9px] font-black rounded-lg px-2 py-0.5 ${
+                                      isPaid 
+                                        ? 'bg-slate-900 text-amber-500 border border-slate-800' 
+                                        : 'bg-slate-950/80 text-lime-400 font-bold'
+                                    }`}>
+                                      🛒 Bar: {totalBarItems} art.
+                                    </span>
+                                  )}
+                                </div>
+                              </motion.button>
+                            </td>
+                          );
+                        } else {
+                          // Continuation Slot
+                          return (
+                            <td key={court.id} className="p-2.5 align-middle text-center">
+                              <motion.button
+                                id={`booking-card-cont-${activeBooking.id}-${slot.start}`}
+                                whileHover={{ scale: 1.01 }}
+                                whileTap={{ scale: 0.99 }}
+                                onClick={() => {
+                                  setSelectedBooking(activeBooking);
+                                  setIsCheckingOut(false);
+                                  setQuickOrderProductId('');
+                                  setQuickOrderQty(1);
+                                  setOrderError('');
+                                }}
+                                className="w-full p-2 rounded-2xl border border-dashed border-slate-700 max-w-[195px] text-left cursor-pointer transition-all bg-slate-900/40 text-slate-400 hover:bg-slate-850 hover:border-lime-400/40"
+                              >
+                                <div className="flex items-center justify-between px-1">
+                                  <p className="text-[10px] font-bold truncate text-slate-400 flex items-center gap-1">
+                                    <span className="w-1 h-1 rounded-full bg-slate-500 animate-pulse" />
+                                    <span>{activeBooking.clientName}</span>
+                                    <span className="text-[8.5px] font-medium text-slate-500 lowercase">(cont.)</span>
+                                  </p>
+                                </div>
+                              </motion.button>
+                            </td>
+                          );
+                        }
                       }
 
                       // Empty Cell - Trigger Nueva Reserva
@@ -547,7 +738,7 @@ export default function BookingCalendar({
                 </button>
               </div>
 
-              <form onSubmit={handleCreateSubmit} className="p-6 space-y-4" style={{ backgroundColor: '#0f172b' }}>
+              <form onSubmit={handleCreateSubmit} className="p-6 space-y-4 overflow-y-auto" style={{ backgroundColor: '#0f172b', width: '445px', height: '450px' }}>
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">Nombre del Cliente *</label>
                   <div className="relative">
@@ -580,17 +771,13 @@ export default function BookingCalendar({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-4">
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">Cancha</label>
                     <select 
                       id="form-court-select"
                       value={formCourtId}
-                      onChange={(e) => {
-                        setFormCourtId(e.target.value);
-                        const court = courts.find(c => c.id === e.target.value);
-                        if (court) setFormCustomPrice(court.price90Min);
-                      }}
+                      onChange={(e) => handleFormCourtChange(e.target.value)}
                       className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-hidden focus:ring-1 focus:ring-lime-400 bg-white text-slate-900 font-bold"
                     >
                       {courts.map(c => (
@@ -599,23 +786,65 @@ export default function BookingCalendar({
                     </select>
                   </div>
 
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">Horario Inicio</label>
-                    <select 
-                      id="form-time-select"
-                      value={formStartTime}
-                      onChange={(e) => setFormStartTime(e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-hidden focus:ring-1 focus:ring-lime-400 bg-white text-slate-900 font-bold"
-                    >
-                      {TIME_SLOTS.map(t => (
-                        <option key={t.start} value={t.start}>{t.start} hs</option>
-                      ))}
-                    </select>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">Horario Inicio</label>
+                      <select 
+                        id="form-time-select"
+                        value={formStartTime}
+                        onChange={(e) => handleStartTimeChange(e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-hidden focus:ring-1 focus:ring-lime-400 bg-white text-black font-bold"
+                      >
+                        {ALL_TIME_CHOICES.filter(t => t !== '24:00').map(t => (
+                          <option key={t} value={t}>{t} hs ({formatTo12Hour(t)})</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">Horario Fin</label>
+                      <select 
+                        id="form-time-end-select"
+                        value={formEndTime}
+                        onChange={(e) => handleEndTimeChange(e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-hidden focus:ring-1 focus:ring-lime-400 bg-white text-black font-bold"
+                      >
+                        {ALL_TIME_CHOICES.filter(time => timeToNumber(time) > timeToNumber(formStartTime)).map(t => (
+                          <option key={t} value={t}>{t} hs ({formatTo12Hour(t)})</option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                 </div>
 
+                {/* Cost Calculation Summary Card */}
+                {formCourtId && formStartTime && formEndTime && (
+                  <div className="bg-[#1e293b] p-4 rounded-2xl border border-slate-700/60 space-y-2 mt-4 text-white">
+                    <div className="text-xs font-black text-lime-400 uppercase tracking-wider">Costo por Hora de la Cancha</div>
+                    <div className="flex justify-between text-xs text-slate-300">
+                      <span>Costo por Hora:</span>
+                      <span className="font-mono text-slate-200">
+                        {selectedCourtObj ? `${formatPrice(selectedCourtObj.pricePerHour)} / hora` : ''}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-xs text-slate-300">
+                      <span>Horas Seleccionadas:</span>
+                      <span className="font-mono text-slate-200">
+                        {durationHoursVal} hs ({formatTo12Hour(formStartTime)} a {formatTo12Hour(formEndTime)})
+                      </span>
+                    </div>
+                    <div className="border-t border-slate-700 my-2"></div>
+                    <div className="flex justify-between text-sm font-extrabold text-white">
+                      <span>Costo Sugerido:</span>
+                      <span className="text-lime-400 font-mono">
+                        {formatPrice(calculatePrice(selectedCourtObj?.pricePerHour || 0, formStartTime, formEndTime))}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">Precio de la Cancha (Gs.)</label>
+                  <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">Precio Seteado de la Cancha (Gs.)</label>
                   <div className="relative">
                     <span className="absolute left-3 top-2.5 text-xs text-slate-500 font-extrabold select-none">Gs.</span>
                     <input 
@@ -623,7 +852,7 @@ export default function BookingCalendar({
                       id="form-court-price"
                       value={formCustomPrice}
                       onChange={(e) => setFormCustomPrice(Number(e.target.value))}
-                      className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-xl text-sm focus:outline-hidden focus:ring-1 focus:ring-lime-400 focus:border-lime-400 bg-white font-bold text-slate-900"
+                      className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-xl text-sm focus:outline-hidden focus:ring-1 focus:ring-lime-400 focus:border-lime-400 bg-white font-bold text-black"
                     />
                   </div>
                 </div>
@@ -719,7 +948,9 @@ export default function BookingCalendar({
                     <div className="space-y-4">
                       <div className="space-y-2">
                         <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl border border-slate-100 text-xs text-slate-900">
-                          <span className="font-semibold text-slate-700">Reserva de Cancha (90 minutos)</span>
+                          <span className="font-semibold text-slate-700">
+                            Reserva de Cancha ({Math.round((timeToNumber(selectedBooking.endTime) - timeToNumber(selectedBooking.startTime)) * 60)} minutos)
+                          </span>
                           <span className="font-bold text-slate-900">{formatPrice(selectedBooking.courtPrice)}</span>
                         </div>
 

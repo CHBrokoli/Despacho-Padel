@@ -6,21 +6,21 @@ export const INITIAL_COURTS: Court[] = [
     name: 'Cancha 1 (Cristal)',
     type: 'Cristal',
     color: 'emerald',
-    price90Min: 24000
+    pricePerHour: 16000
   },
   {
     id: 'c2',
     name: 'Cancha 2 (Panorámica)',
     type: 'Blindex',
     color: 'blue',
-    price90Min: 28000
+    pricePerHour: 20000
   },
   {
     id: 'c3',
     name: 'Cancha 3 (Hormigón)',
     type: 'Hormigón',
     color: 'amber',
-    price90Min: 18000
+    pricePerHour: 12000
   }
 ];
 
@@ -132,9 +132,9 @@ export const INITIAL_BOOKINGS: Booking[] = [
     clientPhone: '351423455',
     date: todayStr,
     startTime: '09:00',
-    endTime: '10:30',
+    endTime: '10:00',
     status: 'completado',
-    courtPrice: 24000,
+    courtPrice: 16000,
     barTab: [
       { productId: 'p1', name: 'Gatorade 500ml (Manzana)', qty: 2, price: 3200 },
       { productId: 'p3', name: 'Agua Mineral Sin Gas 600ml', qty: 1, price: 1800 }
@@ -148,10 +148,10 @@ export const INITIAL_BOOKINGS: Booking[] = [
     clientName: 'Amelia Ortiz',
     clientPhone: '351688741',
     date: todayStr,
-    startTime: '10:30',
-    endTime: '12:00',
+    startTime: '10:00',
+    endTime: '11:00',
     status: 'reservado',
-    courtPrice: 28000,
+    courtPrice: 20000,
     barTab: [
       { productId: 'p8', name: 'Alquiler Pala Bullpadel Vertex', qty: 2, price: 3000 }
     ],
@@ -164,9 +164,9 @@ export const INITIAL_BOOKINGS: Booking[] = [
     clientPhone: '351989412',
     date: todayStr,
     startTime: '15:00',
-    endTime: '16:30',
+    endTime: '16:00',
     status: 'reservado',
-    courtPrice: 24000,
+    courtPrice: 16000,
     barTab: [],
     paid: false
   },
@@ -177,9 +177,9 @@ export const INITIAL_BOOKINGS: Booking[] = [
     clientPhone: '351336592',
     date: todayStr,
     startTime: '18:00',
-    endTime: '19:30',
+    endTime: '19:00',
     status: 'reservado',
-    courtPrice: 18000,
+    courtPrice: 12000,
     barTab: [
       { productId: 'p4', name: 'Cerveza Corona Porrón 330ml', qty: 4, price: 3500 }
     ],
@@ -191,10 +191,10 @@ export const INITIAL_BOOKINGS: Booking[] = [
     clientName: 'Clara Domínguez',
     clientPhone: '261599874',
     date: yesterdayStr,
-    startTime: '19:30',
-    endTime: '21:00',
+    startTime: '19:00',
+    endTime: '20:00',
     status: 'completado',
-    courtPrice: 28000,
+    courtPrice: 20000,
     barTab: [
       { productId: 'p1', name: 'Gatorade 500ml (Manzana)', qty: 4, price: 3200 },
       { productId: 'p6', name: 'Tubo de Pelotas Head Pro S (x3)', qty: 1, price: 12500 }

@@ -112,6 +112,12 @@ export default function App() {
     }
   };
 
+  // UPDATE COURT
+  const handleUpdateCourt = (updatedCourt: Court) => {
+    const updated = courts.map(c => c.id === updatedCourt.id ? updatedCourt : c);
+    saveState(updated);
+  };
+
   // 1. ADD NEW BOOKING
   const handleAddBooking = (newBooking: Booking) => {
     const updated = [...bookings, newBooking];
@@ -744,6 +750,7 @@ export default function App() {
                   onCheckoutBooking={handleCheckoutBooking}
                   onCheckoutClientShare={handleCheckoutClientShare}
                   onUpdateBooking={handleUpdateBooking}
+                  onUpdateCourt={handleUpdateCourt}
                   formatPrice={formatPrice}
                 />
               )}
