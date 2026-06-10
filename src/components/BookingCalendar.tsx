@@ -797,8 +797,7 @@ export default function BookingCalendar({
                       placeholder="Ej. Juan de la Cruz"
                       value={clientName}
                       onChange={(e) => setClientName(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-xl text-sm focus:outline-hidden focus:ring-1 focus:ring-lime-400 focus:border-lime-400 bg-white placeholder-slate-400 font-bold"
-                      style={{ color: '#000000' }}
+                      className="w-full pl-10 pr-4 py-2 border border-[#334155] rounded-xl text-sm focus:outline-hidden focus:ring-1 focus:ring-[#9ae600] focus:border-[#9ae600] bg-slate-950 text-white placeholder-slate-500 font-bold"
                     />
                   </div>
                 </div>
@@ -813,7 +812,7 @@ export default function BookingCalendar({
                       placeholder="Ej. +595 981 123456"
                       value={clientPhone}
                       onChange={(e) => setClientPhone(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-xl text-sm focus:outline-hidden focus:ring-1 focus:ring-lime-400 focus:border-lime-400 bg-white text-slate-900 placeholder-slate-400 font-bold"
+                      className="w-full pl-10 pr-4 py-2 border border-[#334155] rounded-xl text-sm focus:outline-hidden focus:ring-1 focus:ring-[#9ae600] focus:border-[#9ae600] bg-slate-950 text-white placeholder-slate-500 font-bold"
                     />
                   </div>
                 </div>
@@ -825,10 +824,10 @@ export default function BookingCalendar({
                       id="form-court-select"
                       value={formCourtId}
                       onChange={(e) => handleFormCourtChange(e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-hidden focus:ring-1 focus:ring-lime-400 bg-white text-slate-900 font-bold"
+                      className="w-full px-3 py-2 border border-[#334155] rounded-xl text-sm focus:outline-hidden focus:ring-1 focus:ring-[#9ae600] bg-slate-950 text-white font-bold"
                     >
                       {courts.map(c => (
-                        <option key={c.id} value={c.id}>{c.name}</option>
+                        <option key={c.id} value={c.id} className="bg-slate-950 text-white">{c.name}</option>
                       ))}
                     </select>
                   </div>
@@ -840,10 +839,10 @@ export default function BookingCalendar({
                         id="form-time-select"
                         value={formStartTime}
                         onChange={(e) => handleStartTimeChange(e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-hidden focus:ring-1 focus:ring-lime-400 bg-white text-black font-bold"
+                        className="w-full px-3 py-2 border border-[#334155] rounded-xl text-sm focus:outline-hidden focus:ring-1 focus:ring-[#9ae600] bg-slate-950 text-white font-bold"
                       >
                         {ALL_TIME_CHOICES.filter(t => t !== '24:00').map(t => (
-                          <option key={t} value={t}>{t} hs ({formatTo12Hour(t)})</option>
+                          <option key={t} value={t} className="bg-slate-950 text-white">{t} hs ({formatTo12Hour(t)})</option>
                         ))}
                       </select>
                     </div>
@@ -854,10 +853,10 @@ export default function BookingCalendar({
                         id="form-time-end-select"
                         value={formEndTime}
                         onChange={(e) => handleEndTimeChange(e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-hidden focus:ring-1 focus:ring-lime-400 bg-white text-black font-bold"
+                        className="w-full px-3 py-2 border border-[#334155] rounded-xl text-sm focus:outline-hidden focus:ring-1 focus:ring-[#9ae600] bg-slate-950 text-white font-bold"
                       >
                         {ALL_TIME_CHOICES.filter(time => timeToNumber(time) >= timeToNumber(formStartTime) + 1.0).map(t => (
-                          <option key={t} value={t}>{t} hs ({formatTo12Hour(t)})</option>
+                          <option key={t} value={t} className="bg-slate-950 text-white">{t} hs ({formatTo12Hour(t)})</option>
                         ))}
                       </select>
                     </div>
@@ -899,7 +898,7 @@ export default function BookingCalendar({
                       id="form-court-price"
                       value={formCustomPrice}
                       onChange={(e) => setFormCustomPrice(Number(e.target.value))}
-                      className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-xl text-sm focus:outline-hidden focus:ring-1 focus:ring-lime-400 focus:border-lime-400 bg-white font-bold text-black"
+                      className="w-full pl-10 pr-4 py-2 border border-[#334155] rounded-xl text-sm focus:outline-hidden focus:ring-1 focus:ring-[#9ae600] focus:border-[#9ae600] bg-slate-950 font-bold text-white"
                     />
                   </div>
                 </div>
@@ -935,7 +934,7 @@ export default function BookingCalendar({
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden border border-slate-100"
+              className="bg-[#0f172b] rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden border border-[#334155]"
             >
               {/* Header details */}
               <div className="bg-slate-900 p-6 text-white flex items-center justify-between">
@@ -974,17 +973,17 @@ export default function BookingCalendar({
               </div>
 
               {/* Grid content split: left side orders / right side operations */}
-              <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-100">
+              <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-[#334155]/60">
                 
                 {/* Panel canilla izquierda: consumos / bar list */}
                 <div className="p-6 space-y-4 max-h-[580px] overflow-y-auto">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <ListOrdered size={16} className="text-slate-500" />
-                      <h4 className="font-bold text-slate-800 text-sm">Cuentas y Consumos</h4>
+                      <ListOrdered size={16} className="text-[#9ae600]" />
+                      <h4 className="font-bold text-slate-200 text-sm">Cuentas y Consumos</h4>
                     </div>
                     {selectedBooking.clients && selectedBooking.clients.length > 0 && (
-                      <span className="text-[10px] font-black uppercase bg-purple-100 text-[#5B21B6] border border-[#DDD6FE] px-2 py-0.5 rounded-sm">
+                      <span className="text-[10px] font-black uppercase bg-purple-950/40 text-purple-300 border border-purple-800/60 px-2 py-0.5 rounded-sm">
                          👥 Cuenta Dividida ({selectedBooking.clients.length})
                       </span>
                     )}
@@ -994,42 +993,42 @@ export default function BookingCalendar({
                   {!selectedBooking.clients || selectedBooking.clients.length === 0 ? (
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl border border-slate-100 text-xs text-slate-900">
-                          <span className="font-semibold text-slate-700">
+                        <div className="flex items-center justify-between p-2.5 bg-slate-900/60 rounded-xl border border-[#334155] text-xs text-slate-200">
+                          <span className="font-semibold text-slate-300">
                             Reserva de Cancha ({Math.round((timeToNumber(selectedBooking.endTime) - timeToNumber(selectedBooking.startTime)) * 60)} minutos)
                           </span>
-                          <span className="font-bold text-slate-900">{formatPrice(selectedBooking.courtPrice)}</span>
+                          <span className="font-bold text-slate-200">{formatPrice(selectedBooking.courtPrice)}</span>
                         </div>
 
-                        <div className="text-xs font-bold text-slate-500 uppercase tracking-widest pt-2">
+                        <div className="text-xs font-bold text-slate-400 uppercase tracking-widest pt-2">
                           🛒 Consumos Generales del Pitch
                         </div>
 
                         {selectedBooking.barTab.length === 0 ? (
-                          <div className="text-center py-6 border border-dashed border-slate-100 rounded-xl text-xs text-slate-400">
+                          <div className="text-center py-6 border border-dashed border-[#334155]/60 bg-slate-900/20 rounded-xl text-xs text-slate-400">
                             No hay bebidas o insumos cargados a esta cancha todavía.
                           </div>
                         ) : (
                           <div className="space-y-2">
                             {selectedBooking.barTab.map(item => (
-                              <div key={item.productId} className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-xl border border-slate-50 transition-colors text-xs gap-2">
+                              <div key={item.productId} className="flex items-center justify-between p-2 hover:bg-slate-800/40 rounded-xl border border-[#334155]/60 bg-slate-900/40 transition-colors text-xs gap-2">
                                 <div className="flex-1 min-w-0">
-                                  <h5 className="font-semibold text-slate-900 truncate">{item.name}</h5>
+                                  <h5 className="font-semibold text-slate-200 truncate">{item.name}</h5>
                                   <p className="text-[10px] text-slate-400">
                                     {item.qty} un. x {formatPrice(item.price)}
                                   </p>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                  <span className="font-bold text-slate-950">{formatPrice(item.price * item.qty)}</span>
+                                  <span className="font-bold text-white">{formatPrice(item.price * item.qty)}</span>
                                   {!selectedBooking.paid && (
                                     <button 
                                       type="button"
                                       id={`remove-product-from-tab-${item.productId}`}
                                       onClick={() => handleRemoveProductFromTabId(item.productId)}
-                                      className="text-slate-400 hover:text-rose-500 p-1.5 hover:bg-rose-50 rounded-md transition-colors"
+                                      className="text-slate-400 hover:text-rose-400 p-1.5 hover:bg-rose-955/40 rounded-md transition-colors"
                                       title="Eliminar consumo"
                                     >
-                                      <Trash2 size={14} />
+                                      <Trash2 size={13} />
                                     </button>
                                   )}
                                 </div>
@@ -1041,17 +1040,17 @@ export default function BookingCalendar({
 
                       {/* Prompts to enable multi-client split */}
                       {!selectedBooking.paid && (
-                        <div className="bg-slate-50 border border-dashed border-slate-200 p-4 rounded-2xl space-y-2 text-center">
+                        <div className="bg-slate-900/30 border border-dashed border-[#334155] p-4 rounded-2xl space-y-2 text-center">
                           <Users size={20} className="mx-auto text-slate-400" />
-                          <h5 className="font-bold text-xs text-slate-700">¿Dividir cuenta entre jugadores?</h5>
-                          <p className="text-[10px] text-slate-500 leading-relaxed">
+                          <h5 className="font-bold text-xs text-slate-300">¿Dividir cuenta entre jugadores?</h5>
+                          <p className="text-[10px] text-slate-400 leading-relaxed">
                             Carga a los clientes de este turno para dividir el importe total de la cancha y registrar los consumos individuales del bar para cada uno.
                           </p>
                           <button
                             type="button"
                             id="enable-splitting-btn"
                             onClick={handleInitializeMultiClients}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white hover:bg-slate-800 text-[10px] font-black rounded-lg transition-all cursor-pointer shadow-sm"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 text-slate-200 hover:bg-slate-700 border border-[#334155] text-[10px] font-black rounded-lg transition-all cursor-pointer shadow-sm"
                           >
                             Habilitar Carga de Clientes
                           </button>
@@ -1063,22 +1062,22 @@ export default function BookingCalendar({
                     <div className="space-y-4">
                       {/* General unassigned shared drinks bar tab */}
                       {selectedBooking.barTab.length > 0 && (
-                        <div className="bg-amber-50/40 border border-amber-100 p-3 rounded-2xl space-y-2">
-                          <div className="text-[10.5px] font-extrabold text-amber-800 uppercase tracking-widest flex items-center justify-between">
+                        <div className="bg-amber-955/20 border border-amber-900/40 p-3 rounded-2xl space-y-2">
+                          <div className="text-[10.5px] font-extrabold text-amber-400 uppercase tracking-widest flex items-center justify-between">
                             <span>🍺 Consumos Generales sin registrar</span>
-                            <span className="text-[9.5px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">Común</span>
+                            <span className="text-[9.5px] font-bold text-amber-300 bg-amber-950/40 px-1.5 py-0.5 rounded">Común</span>
                           </div>
                           <div className="space-y-1.5">
                             {selectedBooking.barTab.map(item => (
                               <div key={item.productId} className="flex items-center justify-between text-xs gap-1">
-                                <span className="text-slate-700 truncate max-w-[160px] font-medium">{item.name} ({item.qty} un.)</span>
+                                <span className="text-slate-300 truncate max-w-[160px] font-medium">{item.name} ({item.qty} un.)</span>
                                 <div className="flex items-center gap-2">
-                                  <span className="font-bold text-slate-950">{formatPrice(item.price * item.qty)}</span>
+                                  <span className="font-bold text-white">{formatPrice(item.price * item.qty)}</span>
                                   {!selectedBooking.paid && (
                                     <button
                                       type="button"
                                       onClick={() => handleRemoveProductFromTabId(item.productId)}
-                                      className="text-slate-400 hover:text-rose-600 p-1 rounded hover:bg-rose-50"
+                                      className="text-slate-400 hover:text-rose-400 p-1 rounded hover:bg-rose-955/40"
                                     >
                                       <X size={12} />
                                     </button>
@@ -1102,7 +1101,7 @@ export default function BookingCalendar({
 
                       {/* Render Clients cards list */}
                       <div className="space-y-3">
-                        <div className="text-xs font-black text-slate-500 uppercase tracking-wider">
+                        <div className="text-xs font-black text-slate-400 uppercase tracking-wider">
                           Clientes en Cancha & Cuentas correspondientes
                         </div>
 
@@ -1115,13 +1114,13 @@ export default function BookingCalendar({
                               key={c.id} 
                               className={`p-3.5 rounded-2xl border transition-all space-y-2.5 ${
                                 c.paid 
-                                  ? 'bg-slate-50 border-slate-200' 
-                                  : 'bg-white border-slate-150 border-slate-200 shadow-xs'
+                                  ? 'bg-slate-950 border-[#334155]/60' 
+                                  : 'bg-slate-900/60 border-[#334155] shadow-xs'
                               }`}
                             >
                               <div className="flex items-start justify-between gap-1">
                                 <div className="min-w-0">
-                                  <h5 className="font-extrabold text-xs text-slate-950 truncate flex items-center gap-1.5">
+                                  <h5 className="font-extrabold text-xs text-slate-200 truncate flex items-center gap-1.5">
                                     <span className={`w-1.5 h-1.5 rounded-full ${c.paid ? 'bg-emerald-500' : 'bg-rose-500'}`} />
                                     {c.name}
                                   </h5>
@@ -1130,19 +1129,19 @@ export default function BookingCalendar({
 
                                 <div className="flex items-center gap-2 shrink-0">
                                   {c.paid ? (
-                                    <span className="text-[9px] font-black uppercase text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-sm">
+                                    <span className="text-[9px] font-black uppercase text-emerald-400 bg-emerald-950/40 border border-emerald-800/60 px-2 py-0.5 rounded-sm">
                                       PAGADO ({c.paymentMethod})
                                     </span>
                                   ) : (
                                     <>
-                                      <span className="text-[9px] font-black uppercase text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-sm">
+                                      <span className="text-[9px] font-black uppercase text-amber-400 bg-amber-955/40 border border-amber-800/60 px-1.5 py-0.5 rounded-sm">
                                         CON DEUDA
                                       </span>
                                       {!selectedBooking.paid && (
                                         <button
                                           type="button"
                                           onClick={() => handleDeleteClient(c.id)}
-                                          className="text-slate-400 hover:text-rose-600 p-1 rounded hover:bg-slate-100 transition-colors cursor-pointer"
+                                          className="text-slate-400 hover:text-rose-450 p-1 rounded hover:bg-slate-800 transition-colors cursor-pointer"
                                           title="Quitar cliente"
                                         >
                                           <Trash2 size={13} />
@@ -1154,21 +1153,21 @@ export default function BookingCalendar({
                               </div>
 
                               {/* Divididos: Court and Bar info */}
-                              <div className="bg-slate-50/50 p-2.5 rounded-xl border border-slate-100 space-y-2 text-xs">
+                              <div className="bg-slate-950/60 p-2.5 rounded-xl border border-[#334155]/55 space-y-2 text-xs">
                                 {/* Court share input or text */}
                                 <div className="flex items-center justify-between">
-                                  <span className="text-slate-500 font-medium">Aporte Cancha:</span>
+                                  <span className="text-slate-400 font-medium">Aporte Cancha:</span>
                                   {c.paid || selectedBooking.paid ? (
-                                    <span className="font-bold text-slate-900">{formatPrice(c.courtShare)}</span>
+                                    <span className="font-bold text-slate-200">{formatPrice(c.courtShare)}</span>
                                   ) : (
                                     <div className="flex items-center gap-1">
-                                      <span className="text-[10px] text-slate-400">Gs.</span>
+                                      <span className="text-[10px] text-slate-500">Gs.</span>
                                       <input 
                                         type="number"
                                         value={c.courtShare}
                                         step="1000"
                                         onChange={(e) => handleUpdateClientShare(c.id, Number(e.target.value))}
-                                        className="w-20 px-1.5 py-0.5 border border-slate-300 rounded text-center text-xs font-black bg-white text-slate-950"
+                                        className="w-20 px-1.5 py-0.5 border border-[#334155] rounded text-center text-xs font-black bg-slate-900 text-white focus:outline-hidden focus:border-[#9ae600]"
                                       />
                                     </div>
                                   )}
@@ -1176,18 +1175,18 @@ export default function BookingCalendar({
 
                                 {/* Client's BarTab items */}
                                 {c.barTab.length > 0 && (
-                                  <div className="pt-1.5 border-t border-slate-100 space-y-1.5">
+                                  <div className="pt-1.5 border-t border-[#334155]/60 space-y-1.5">
                                     <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">🛒 Consumo Individual:</div>
                                     {c.barTab.map(item => (
                                       <div key={item.productId} className="flex items-center justify-between text-[11px] gap-2">
-                                        <span className="text-slate-700 truncate max-w-[130px]">{item.name} (x{Number(item.qty.toFixed(2))})</span>
+                                        <span className="text-slate-300 truncate max-w-[130px]">{item.name} (x{Number(item.qty.toFixed(2))})</span>
                                         <div className="flex items-center gap-2">
-                                          <span className="font-bold text-slate-950">{formatPrice(item.price * item.qty)}</span>
+                                          <span className="font-bold text-white">{formatPrice(item.price * item.qty)}</span>
                                           {!c.paid && !selectedBooking.paid && (
                                             <button
                                               type="button"
                                               onClick={() => handleRemoveProductFromTabId(item.productId, c.id)}
-                                              className="text-slate-400 hover:text-rose-650 p-0.5 hover:bg-slate-100"
+                                              className="text-slate-400 hover:text-rose-400 p-0.5 hover:bg-slate-800"
                                               title="Quitar consumo"
                                             >
                                               <X size={10} />
@@ -1200,7 +1199,7 @@ export default function BookingCalendar({
                                 )}
 
                                 {/* Sum / total breakdown per client */}
-                                <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-slate-900 font-extrabold">
+                                <div className="pt-2 border-t border-[#334155]/60 flex items-center justify-between text-slate-250 font-extrabold">
                                   <span>Total de {c.name}:</span>
                                   <span>{formatPrice(cTotalDue)}</span>
                                 </div>
@@ -1214,7 +1213,7 @@ export default function BookingCalendar({
                                     setCheckingOutClientId(c.id);
                                     setClientCheckoutMethod('efectivo');
                                   }}
-                                  className="w-full py-1.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 text-[10.5px] font-black rounded-xl transition-all flex items-center justify-center gap-1 cursor-pointer"
+                                  className="w-full py-1.5 bg-emerald-950/30 hover:bg-emerald-950/50 border border-emerald-800/60 text-emerald-400 text-[10.5px] font-black rounded-xl transition-all flex items-center justify-center gap-1 cursor-pointer"
                                 >
                                   <DollarSign size={12} /> Cobrar Parte ({formatPrice(cTotalDue)})
                                 </button>
@@ -1227,38 +1226,38 @@ export default function BookingCalendar({
                   )}
 
                   {/* Calculations breakdown */}
-                  <div className="pt-3 border-t border-slate-150 space-y-1.5 text-xs">
-                    <div className="flex justify-between text-slate-500">
+                  <div className="pt-3 border-t border-[#334155]/60 space-y-1.5 text-xs">
+                    <div className="flex justify-between text-slate-400">
                       <span>Cancha Base</span>
                       <span>{formatPrice(selectedBooking.courtPrice)}</span>
                     </div>
                     {selectedBooking.clients && selectedBooking.clients.length > 0 && (
                       <>
                         {selectedBooking.barTab.length > 0 && (
-                          <div className="flex justify-between text-slate-500">
+                          <div className="flex justify-between text-slate-400">
                             <span>Consumo Común / General</span>
                             <span>{formatPrice(selectedBooking.barTab.reduce((a,b) => a + (b.price * b.qty), 0))}</span>
                           </div>
                         )}
-                        <div className="flex justify-between text-slate-500">
+                        <div className="flex justify-between text-slate-400">
                           <span>Consumo Individual asignado</span>
                           <span>
                             {formatPrice(
                               selectedBooking.clients.reduce((total, c) => {
-                                return total + c.barTab.reduce((sub, item) => sub + (item.price * item.qty), 0);
-                              }, 0)
+                                  return total + c.barTab.reduce((sub, item) => sub + (item.price * item.qty), 0);
+                                }, 0)
                             )}
                           </span>
                         </div>
                       </>
                     )}
                     {(!selectedBooking.clients || selectedBooking.clients.length === 0) && (
-                      <div className="flex justify-between text-slate-500">
+                      <div className="flex justify-between text-slate-400">
                         <span>Bebidas / Insumos Bar</span>
                         <span>{formatPrice(selectedBooking.barTab.reduce((a, b) => a + (b.price * b.qty), 0))}</span>
                       </div>
                     )}
-                    <div className="flex justify-between text-base font-extrabold text-slate-950 pt-1 border-t border-slate-100">
+                    <div className="flex justify-between text-base font-extrabold text-[#9ae600] pt-1.5 border-t border-[#334155]/60">
                       <span>Monto Total a Recaudar</span>
                       <span>
                         {formatPrice(
@@ -1284,15 +1283,15 @@ export default function BookingCalendar({
                         const isShareMismatch = totalSharesSum !== selectedBooking.courtPrice;
                         if (isShareMismatch) {
                           return (
-                            <div className="bg-amber-50 border border-amber-200 p-3 rounded-2xl flex flex-col gap-1.5 text-[10.5px] text-amber-850">
-                              <div className="flex items-start gap-1.5 font-extrabold leading-tight text-amber-900">
-                                <AlertTriangle size={14} className="shrink-0 text-amber-600" />
+                            <div className="bg-amber-955/20 border border-amber-900/40 p-3 rounded-2xl flex flex-col gap-1.5 text-[10.5px] text-amber-300">
+                              <div className="flex items-start gap-1.5 font-extrabold leading-tight text-amber-450 text-amber-400">
+                                <AlertTriangle size={14} className="shrink-0 text-amber-400" />
                                 <span>La suma de aportes individuales ({formatPrice(totalSharesSum)}) difiere del valor real de cancha ({formatPrice(selectedBooking.courtPrice)}).</span>
                               </div>
                               <button
                                 type="button"
                                 onClick={handleReSplitEqually}
-                                className="font-extrabold text-[#78350F] hover:text-[#451A03] bg-[#FEF3C7] border border-[#FDE68A] py-1 px-2.5 rounded-lg text-xs cursor-pointer text-center"
+                                className="font-extrabold text-amber-200 hover:text-amber-100 bg-amber-900/60 border border-amber-800/40 py-1.5 px-2.5 rounded-lg text-xs cursor-pointer text-center"
                               >
                                 Dividir en Partes Iguales
                               </button>
@@ -1306,27 +1305,27 @@ export default function BookingCalendar({
 
                   {/* SECTION FOR SUB-CLIENT CHECKOUT FLOATING ACTION */}
                   {checkingOutClientId && !selectedBooking.paid ? (
-                    <div className="bg-emerald-50/50 p-4 rounded-3xl border border-emerald-100 space-y-4">
+                    <div className="bg-emerald-950/20 p-4 rounded-3xl border border-emerald-850/40 space-y-4">
                       <div className="flex items-center justify-between">
-                        <h5 className="font-extrabold text-xs text-emerald-950 uppercase tracking-widest flex items-center gap-1.5">
-                          <DollarSign size={14} className="text-emerald-600 animate-pulse" />
+                        <h5 className="font-extrabold text-xs text-emerald-400 uppercase tracking-widest flex items-center gap-1.5">
+                          <DollarSign size={14} className="text-emerald-400 animate-pulse" />
                           Cobrar a: {selectedBooking.clients?.find(c => c.id === checkingOutClientId)?.name}
                         </h5>
                         <button
                           type="button"
                           onClick={() => setCheckingOutClientId(null)}
-                          className="text-[10px] text-slate-400 hover:text-slate-650 font-extrabold uppercase tracking-wider cursor-pointer"
+                          className="text-[10px] text-slate-400 hover:text-slate-200 font-extrabold uppercase tracking-wider cursor-pointer"
                         >
                           Cancelar
                         </button>
                       </div>
 
-                      <div className="space-y-1.5 text-xs text-slate-900">
-                        <div className="flex justify-between text-slate-600 font-medium">
+                      <div className="space-y-1.5 text-xs text-slate-300">
+                        <div className="flex justify-between text-slate-400 font-medium">
                           <span>Aporte de Cancha:</span>
                           <span>{formatPrice(selectedBooking.clients?.find(c => c.id === checkingOutClientId)?.courtShare || 0)}</span>
                         </div>
-                        <div className="flex justify-between text-slate-600 font-medium">
+                        <div className="flex justify-between text-slate-400 font-medium">
                           <span>Consumo Individual de Bar:</span>
                           <span>
                             {formatPrice(
@@ -1334,9 +1333,9 @@ export default function BookingCalendar({
                             )}
                           </span>
                         </div>
-                        <div className="flex justify-between text-sm font-black text-[#0B1528] pt-2 border-t border-slate-200">
+                        <div className="flex justify-between text-sm font-black text-white pt-2 border-t border-[#334155]/60 animate-fade-in">
                           <span>Total de este Cliente:</span>
-                          <span className="text-emerald-800 font-bold bg-emerald-100/50 px-2 rounded-md">
+                          <span className="text-emerald-400 font-bold bg-emerald-950/50 border border-emerald-800/40 px-2 rounded-md">
                             {formatPrice(
                               (selectedBooking.clients?.find(c => c.id === checkingOutClientId)?.courtShare || 0) +
                               (selectedBooking.clients?.find(c => c.id === checkingOutClientId)?.barTab.reduce((a, b) => a + (b.qty * b.price), 0) || 0)
@@ -1346,7 +1345,7 @@ export default function BookingCalendar({
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Método de Pago para Caja</label>
+                        <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Método de Pago para Caja</label>
                         <div className="grid grid-cols-3 gap-1">
                           {(['efectivo', 'transferencia', 'tarjeta'] as const).map(method => (
                             <button
@@ -1355,8 +1354,8 @@ export default function BookingCalendar({
                               onClick={() => setClientCheckoutMethod(method)}
                               className={`py-2 text-[10px] font-black uppercase rounded-xl border transition-all cursor-pointer ${
                                 clientCheckoutMethod === method
-                                  ? 'border-emerald-600 bg-emerald-600 text-white shadow-xs'
-                                  : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                                  ? 'border-emerald-500 bg-emerald-600 text-white shadow-xs'
+                                  : 'border-[#334155] bg-slate-900 text-slate-300 hover:bg-slate-850'
                               }`}
                             >
                               {method}
@@ -1368,7 +1367,7 @@ export default function BookingCalendar({
                       <button
                         type="button"
                         onClick={handleFinalizeClientCheckout}
-                        className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-black rounded-xl transition-all cursor-pointer shadow-md text-center"
+                        className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black rounded-xl transition-all cursor-pointer shadow-md text-center"
                       >
                         Registrar Cobro Individual
                       </button>
@@ -1379,10 +1378,10 @@ export default function BookingCalendar({
                     <>
                       {/* Multi client loader list form (only visible if multi-client is enabled) */}
                       {selectedBooking.clients && selectedBooking.clients.length > 0 && (
-                        <div className="bg-[#0F1729]/5 p-4 rounded-3xl border border-slate-100 space-y-3">
+                        <div className="bg-slate-900/60 p-4 rounded-3xl border border-[#334155]/60 space-y-3">
                           <div className="flex items-center gap-1.5">
-                            <Users size={14} className="text-slate-600" />
-                            <h5 className="font-extrabold text-xs text-slate-800 uppercase tracking-widest">Cargar Otro Jugador / Cliente</h5>
+                            <Users size={14} className="text-[#9ae600]" />
+                            <h5 className="font-extrabold text-xs text-slate-200 uppercase tracking-widest">Cargar Otro Jugador / Cliente</h5>
                           </div>
 
                           <form onSubmit={handleAddClientToList} className="space-y-2">
@@ -1393,19 +1392,19 @@ export default function BookingCalendar({
                                 required
                                 value={newClientName}
                                 onChange={(e) => setNewClientName(e.target.value)}
-                                className="px-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-white text-slate-950 font-bold"
+                                className="px-3 py-1.5 border border-[#334155] rounded-lg text-xs bg-slate-950 text-white font-bold focus:outline-hidden focus:border-[#9ae600]"
                               />
                               <input
                                 type="tel"
                                 placeholder="Celular"
                                 value={newClientPhone}
                                 onChange={(e) => setNewClientPhone(e.target.value)}
-                                className="px-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-white text-slate-950 font-bold"
+                                className="px-3 py-1.5 border border-[#334155] rounded-lg text-xs bg-slate-950 text-white font-bold focus:outline-hidden focus:border-[#9ae600]"
                               />
                             </div>
                             <button
                               type="submit"
-                              className="w-full py-1.5 bg-slate-950 hover:bg-slate-800 text-white rounded-lg text-[10px] font-black tracking-wider uppercase transition-all cursor-pointer flex items-center justify-center gap-1"
+                              className="w-full py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-[10px] font-black tracking-wider uppercase transition-all cursor-pointer flex items-center justify-center gap-1 border border-[#334155]"
                             >
                               <Plus size={14} /> Añadir a Cancha y Dividir
                             </button>
@@ -1417,19 +1416,19 @@ export default function BookingCalendar({
                       {!isCheckingOut && !checkingOutClientId && (
                         <div className="space-y-3">
                           <div className="flex items-center gap-2">
-                            <PlusCircle className="text-amber-500" size={16} />
-                            <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">Cargar Bebida / Accesorio</h4>
+                            <PlusCircle className="text-[#9ae600]" size={16} />
+                            <h4 className="font-bold text-slate-200 text-xs uppercase tracking-wider">Cargar Bebida / Accesorio</h4>
                           </div>
 
                           <form onSubmit={handleAddProductToTabSubmit} className="space-y-3">
                             {/* Selector of client if any exist */}
                             {selectedBooking.clients && selectedBooking.clients.length > 0 && (
                               <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-slate-500">Asignar Consumo a:</label>
+                                <label className="text-[10px] font-bold text-slate-400">Asignar Consumo a:</label>
                                 <select
                                   value={quickOrderClientId}
                                   onChange={(e) => setQuickOrderClientId(e.target.value)}
-                                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs bg-slate-50 font-bold text-slate-900"
+                                  className="w-full px-3 py-2 border border-[#334155] rounded-lg text-xs bg-slate-950 font-bold text-white focus:outline-hidden focus:ring-1 focus:ring-[#9ae600] focus:border-[#9ae600]"
                                 >
                                   <option value="">-- Consumo General / Común --</option>
                                   {selectedBooking.clients.map(c => (
@@ -1442,7 +1441,7 @@ export default function BookingCalendar({
                             )}
 
                             <div className="space-y-1">
-                              <label className="text-[10px] font-bold text-slate-500">Seleccionar Insumo del Bar</label>
+                              <label className="text-[10px] font-bold text-slate-400">Seleccionar Insumo del Bar</label>
                               <select 
                                 id="quick-order-product-select"
                                 value={quickOrderProductId}
@@ -1450,7 +1449,7 @@ export default function BookingCalendar({
                                   setQuickOrderProductId(e.target.value);
                                   setOrderError('');
                                 }}
-                                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs bg-slate-50 text-slate-900 font-bold"
+                                className="w-full px-3 py-2 border border-[#334155] rounded-lg text-xs bg-slate-950 text-white font-bold focus:outline-hidden focus:ring-1 focus:ring-[#9ae600] focus:border-[#9ae600]"
                               >
                                 <option value="">-- Elige un producto --</option>
                                 {products.map(p => (
@@ -1463,14 +1462,14 @@ export default function BookingCalendar({
 
                             <div className="flex gap-2">
                               <div className="w-1/3 space-y-1">
-                                <label className="text-[10px] font-bold text-slate-500">Cant.</label>
+                                <label className="text-[10px] font-bold text-slate-400">Cant.</label>
                                 <input 
                                   type="number" 
                                   id="quick-order-qty"
                                   min="1"
                                   value={quickOrderQty}
                                   onChange={(e) => setQuickOrderQty(Math.max(1, Number(e.target.value)))}
-                                  className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-slate-50 text-center font-bold text-slate-900"
+                                  className="w-full px-2.5 py-1.5 border border-[#334155] rounded-lg text-xs bg-slate-950 text-center font-bold text-white focus:outline-hidden focus:ring-1 focus:ring-[#9ae600] focus:border-[#9ae600]"
                                 />
                               </div>
                               <div className="w-2/3 flex items-end">
@@ -1478,7 +1477,7 @@ export default function BookingCalendar({
                                   type="submit" 
                                   id="add-item-to-tab-btn"
                                   disabled={!quickOrderProductId}
-                                  className="w-full py-2 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400 text-white font-bold rounded-lg text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                                  className="w-full py-2 bg-[#9ae600] hover:bg-[#82be00] disabled:bg-slate-800 disabled:text-slate-650 text-slate-950 font-black rounded-lg text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm"
                                 >
                                   <ShoppingBag size={14} /> Cargar a Cuenta
                                 </button>
@@ -1493,11 +1492,11 @@ export default function BookingCalendar({
 
                       {/* Standard whole account Checkouts */}
                       {!isCheckingOut && !checkingOutClientId ? (
-                        <div className="pt-4 border-t border-slate-100 flex flex-col gap-2">
+                        <div className="pt-4 border-t border-[#334155]/60 flex flex-col gap-2">
                           <button
                             id="checkout-trigger-btn"
                             onClick={() => setIsCheckingOut(true)}
-                            className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold rounded-xl text-xs flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer"
+                            className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-xl text-xs flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer"
                           >
                             <FileCheck2 size={16} /> Cobrar y Cerrar Cuenta Completa
                           </button>
@@ -1511,7 +1510,7 @@ export default function BookingCalendar({
                                 setSelectedBooking(null);
                               }
                             }}
-                            className="w-full py-2 border border-slate-100 hover:bg-rose-50 text-rose-500 hover:text-rose-700 text-xs font-semibold rounded-lg transition-all cursor-pointer text-center"
+                            className="w-full py-2 border border-[#334155] hover:bg-rose-955/20 text-rose-400 hover:text-rose-300 text-xs font-semibold rounded-lg transition-all cursor-pointer text-center"
                           >
                             Cancelar Turno
                           </button>
@@ -1521,12 +1520,12 @@ export default function BookingCalendar({
                       {isCheckingOut && !checkingOutClientId ? (
                         <div className="space-y-4">
                           <div className="flex items-center gap-2">
-                            <DollarSign className="text-emerald-500" size={16} />
-                            <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">Finalizar Pago Total</h4>
+                            <DollarSign className="text-emerald-400" size={16} />
+                            <h4 className="font-bold text-slate-200 text-xs uppercase tracking-wider">Finalizar Pago Total</h4>
                           </div>
 
                           <div className="space-y-3">
-                            <p className="text-xs text-slate-500">
+                            <p className="text-xs text-slate-400">
                               {selectedBooking.clients && selectedBooking.clients.length > 0 
                                 ? "Registrar el pago total de todas las cuentas restantes pendientes en el turno." 
                                 : "Selecciona el método de pago para registrar el cobro en las planillas de caja."}
@@ -1538,8 +1537,8 @@ export default function BookingCalendar({
                                   key={method} 
                                   className={`flex items-center justify-between p-3 border rounded-xl cursor-pointer text-xs font-bold transition-all ${
                                     paymentMethod === method 
-                                      ? 'border-emerald-500 bg-emerald-50/40 text-emerald-950' 
-                                      : 'border-slate-200 hover:bg-slate-50 text-slate-700'
+                                      ? 'border-emerald-500 bg-emerald-950/40 text-emerald-400' 
+                                      : 'border-[#334155] hover:bg-slate-850/60 text-slate-300 bg-[#0f172b]/60'
                                   }`}
                                 >
                                   <div className="flex items-center gap-2 capitalize">
@@ -1549,9 +1548,9 @@ export default function BookingCalendar({
                                       id={`payment-radio-${method}`}
                                       checked={paymentMethod === method}
                                       onChange={() => setPaymentMethod(method as any)}
-                                      className="text-emerald-600 focus:ring-emerald-500 bg-white" 
+                                      className="text-emerald-5 w-4 h-4 text-emerald-500 focus:ring-emerald-500 bg-slate-950 border-[#334155]" 
                                     />
-                                    <span className="text-slate-900">{method}</span>
+                                    <span className="text-slate-200">{method}</span>
                                   </div>
                                   <span className="text-[10px] text-slate-400 font-medium font-bold">Sin recargo</span>
                                 </label>
@@ -1559,12 +1558,12 @@ export default function BookingCalendar({
                             </div>
                           </div>
 
-                          <div className="pt-4 border-t border-slate-100 flex gap-2">
+                          <div className="pt-4 border-t border-[#334155]/60 flex gap-2">
                             <button 
                               type="button"
                               id="back-from-checkout"
                               onClick={() => setIsCheckingOut(false)}
-                              className="flex-1 py-2 text-xs font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer text-center"
+                              className="flex-1 py-2 text-xs font-bold text-slate-350 bg-slate-800 hover:bg-slate-700 border border-[#334155] rounded-lg transition-colors cursor-pointer text-center"
                             >
                               Volver
                             </button>
@@ -1572,7 +1571,7 @@ export default function BookingCalendar({
                               type="button"
                               id="confirm-checkout-and-pay"
                               onClick={handleFinalizeCheckout}
-                              className="flex-1 py-2 text-xs font-bold text-white bg-emerald-500 hover:bg-emerald-600 rounded-lg transition-colors cursor-pointer text-center"
+                              className="flex-1 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 rounded-lg transition-colors cursor-pointer text-center"
                             >
                               Registrar Pago Total
                             </button>
@@ -1583,14 +1582,18 @@ export default function BookingCalendar({
                   ) : (
                     /* CUENTA YA COBRADA / HISTORIAL COMPLETO */
                     <div className="flex flex-col items-center justify-center text-center py-6 space-y-3">
-                      <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                      <div className="w-12 h-12 rounded-full bg-emerald-950/60 border border-emerald-800/40 text-emerald-400 flex items-center justify-center">
                         <Check size={24} />
                       </div>
                       <div>
-                        <h4 className="font-bold text-slate-900 text-sm">Reserva Finalizada Correctamente</h4>
-                        <p className="text-xs text-slate-500 mt-1">El cobro ha sido ingresado en caja mediante método: <strong className="capitalize text-emerald-600">{selectedBooking.paymentMethod}</strong>.</p>
+                        <h4 className="font-bold text-white text-sm">Reserva Finalizada Correctamente</h4>
+                        <p className="text-xs text-slate-400 mt-1">El cobro ha sido ingresado en caja mediante método: <strong className="capitalize text-[#9ae600]">{selectedBooking.paymentMethod}</strong>.</p>
                       </div>
-                      <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 text-[10px] text-slate-400 font-mono w-full text-slate-900">
+                      <div className="bg-slate-950/80 p-3 rounded-xl border border-[#334155]/60 text-[10.5px] text-slate-300 font-mono w-full shadow-inner text-left space-y-0.5">
+                        <div className="flex justify-between border-b border-[#334155]/40 pb-1 mb-1 text-slate-400">
+                          <span>Comprobante de Caja</span>
+                          <span>EFECTUADO</span>
+                        </div>
                         Ticket UUID: rx_b{selectedBooking.id.substring(2)}<br />
                         Asociado: {selectedBooking.clientName}<br />
                         Fecha: {selectedBooking.date} • {selectedBooking.startTime} hs
