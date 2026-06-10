@@ -130,10 +130,10 @@ export default function BookingCalendar({
     const currentEndNum = timeToNumber(formEndTime);
     
     let nextEnd = formEndTime;
-    if (currentEndNum <= startNum) {
+    if (currentEndNum < startNum + 1.0) {
       const defaultEndNum = startNum + 1.0;
       const matchingEnd = ALL_TIME_CHOICES.find(t => timeToNumber(t) === defaultEndNum);
-      nextEnd = matchingEnd || ALL_TIME_CHOICES.find(t => timeToNumber(t) > startNum) || '24:00';
+      nextEnd = matchingEnd || ALL_TIME_CHOICES.find(t => timeToNumber(t) >= startNum + 1.0) || '24:00';
       setFormEndTime(nextEnd);
     }
     
@@ -284,6 +284,53 @@ export default function BookingCalendar({
       clients: splitClients
     };
 
+    onUpdateBooking(updatedBooking);
+    setSelectedBooking(updatedBooking);
+  };
+
+  // Split general unassigned bar consumption tab equally among players
+  const handleSplitGeneralBarTabEqually = () => {
+    if (!selectedBooking || !selectedBooking.clients || selectedBooking.clients.length === 0 || selectedBooking.barTab.length === 0) return;
+    
+    const numClients = selectedBooking.clients.length;
+    const generalTab = selectedBooking.barTab;
+    
+    // We will distribute each product in the general tab among the clients
+    const updatedClients = selectedBooking.clients.map(c => {
+      // Create a copy of the client's bar tab
+      const clientTabCopy = [...c.barTab];
+      
+      generalTab.forEach(generalItem => {
+        const shareQty = generalItem.qty / numClients;
+        const existingIdx = clientTabCopy.findIndex(item => item.productId === generalItem.productId);
+        
+        if (existingIdx >= 0) {
+          clientTabCopy[existingIdx] = {
+            ...clientTabCopy[existingIdx],
+            qty: clientTabCopy[existingIdx].qty + shareQty
+          };
+        } else {
+          clientTabCopy.push({
+            productId: generalItem.productId,
+            name: generalItem.name,
+            qty: shareQty,
+            price: generalItem.price
+          });
+        }
+      });
+      
+      return {
+        ...c,
+        barTab: clientTabCopy
+      };
+    });
+    
+    const updatedBooking = {
+      ...selectedBooking,
+      barTab: [], // General tab is now empty
+      clients: updatedClients
+    };
+    
     onUpdateBooking(updatedBooking);
     setSelectedBooking(updatedBooking);
   };
@@ -495,7 +542,7 @@ export default function BookingCalendar({
                 : 'bg-slate-800 hover:bg-[#334155] border-[#334155] text-slate-200'
             }`}
           >
-            <DollarSign size={14} />
+            <DollarSign size={14} className={isPricingPanelOpen ? "text-slate-950" : "text-[#9ae600]"} />
             <span>Tarifas / Hs</span>
           </button>
           <button 
@@ -510,7 +557,7 @@ export default function BookingCalendar({
             id="calendar-date-input"
             value={selectedDate}
             onChange={(e) => onSetSelectedDate(e.target.value)}
-            className="text-xs font-bold px-4 py-2.5 border border-[#334155] focus:border-lime-400 focus:outline-hidden focus:ring-1 focus:ring-lime-400 rounded-xl cursor-pointer text-white bg-slate-900"
+            className="text-xs font-bold px-4 py-2.5 border border-[#334155] focus:border-lime-400 focus:outline-hidden focus:ring-1 focus:ring-lime-400 rounded-xl cursor-pointer text-[#e2e8f0] bg-[#1e293b]"
           />
         </div>
       </div>
@@ -809,7 +856,7 @@ export default function BookingCalendar({
                         onChange={(e) => handleEndTimeChange(e.target.value)}
                         className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-hidden focus:ring-1 focus:ring-lime-400 bg-white text-black font-bold"
                       >
-                        {ALL_TIME_CHOICES.filter(time => timeToNumber(time) > timeToNumber(formStartTime)).map(t => (
+                        {ALL_TIME_CHOICES.filter(time => timeToNumber(time) >= timeToNumber(formStartTime) + 1.0).map(t => (
                           <option key={t} value={t}>{t} hs ({formatTo12Hour(t)})</option>
                         ))}
                       </select>
@@ -1040,6 +1087,16 @@ export default function BookingCalendar({
                               </div>
                             ))}
                           </div>
+                          {!selectedBooking.paid && selectedBooking.clients && selectedBooking.clients.length > 0 && (
+                            <button
+                              type="button"
+                              onClick={handleSplitGeneralBarTabEqually}
+                              className="w-full mt-2 py-2 px-3 bg-[#9ae600] text-slate-950 hover:bg-[#82be00] text-[10px] font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
+                            >
+                              <Users size={12} />
+                              Dividir consumo entre jugadores ({selectedBooking.clients.length})
+                            </button>
+                          )}
                         </div>
                       )}
 
@@ -1123,7 +1180,7 @@ export default function BookingCalendar({
                                     <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">🛒 Consumo Individual:</div>
                                     {c.barTab.map(item => (
                                       <div key={item.productId} className="flex items-center justify-between text-[11px] gap-2">
-                                        <span className="text-slate-700 truncate max-w-[130px]">{item.name} (x{item.qty})</span>
+                                        <span className="text-slate-700 truncate max-w-[130px]">{item.name} (x{Number(item.qty.toFixed(2))})</span>
                                         <div className="flex items-center gap-2">
                                           <span className="font-bold text-slate-950">{formatPrice(item.price * item.qty)}</span>
                                           {!c.paid && !selectedBooking.paid && (
@@ -1552,7 +1609,7 @@ export default function BookingCalendar({
 
 function CalendarHeaderIcon() {
   return (
-    <div className="w-10 h-10 bg-lime-404 bg-lime-400/10 border border-[#334155] rounded-xl flex items-center justify-center text-lime-400">
+    <div className="w-10 h-10 bg-[#9ae600]/10 border border-[#334155] rounded-xl flex items-center justify-center text-[#9ae600]">
       <Activity size={20} />
     </div>
   );
