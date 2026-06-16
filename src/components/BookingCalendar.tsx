@@ -934,10 +934,10 @@ export default function BookingCalendar({
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#0f172b] rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden border border-[#334155]"
+              className="bg-[#0f172b] rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden border border-[#334155] max-h-[90vh] flex flex-col"
             >
               {/* Header details */}
-              <div className="bg-slate-900 p-6 text-white flex items-center justify-between">
+              <div className="bg-slate-900 p-6 text-white flex items-center justify-between shrink-0">
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-[11px] font-extrabold bg-emerald-600 text-white rounded-md px-2.5 py-0.5 uppercase tracking-wide">
@@ -973,10 +973,10 @@ export default function BookingCalendar({
               </div>
 
               {/* Grid content split: left side orders / right side operations */}
-              <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-[#334155]/60">
+              <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-[#334155]/60 flex-1 min-h-0 overflow-y-auto md:overflow-hidden">
                 
                 {/* Panel canilla izquierda: consumos / bar list */}
-                <div className="p-6 space-y-4 max-h-[580px] overflow-y-auto">
+                <div className="p-6 space-y-4 md:max-h-[60vh] overflow-y-auto">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <ListOrdered size={16} className="text-[#9ae600]" />
@@ -1273,7 +1273,7 @@ export default function BookingCalendar({
                 </div>
 
                 {/* Panel canilla derecha: agregar orden o cobrar */}
-                <div className="p-6 space-y-5">
+                <div className="p-6 space-y-5 md:max-h-[60vh] overflow-y-auto">
                   {/* Optional Alert of share discrepancy */}
                   {selectedBooking.clients && selectedBooking.clients.length > 0 && !selectedBooking.paid && (
                     <>
