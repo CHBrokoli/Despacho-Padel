@@ -118,6 +118,18 @@ export default function App() {
     saveState(updated);
   };
 
+  // ADD COURT
+  const handleAddCourt = (newCourt: Court) => {
+    const updated = [...courts, newCourt];
+    saveState(updated);
+  };
+
+  // DELETE COURT
+  const handleDeleteCourt = (courtId: string) => {
+    const updated = courts.filter(c => c.id !== courtId);
+    saveState(updated);
+  };
+
   // 1. ADD NEW BOOKING
   const handleAddBooking = (newBooking: Booking) => {
     const updated = [...bookings, newBooking];
@@ -724,7 +736,7 @@ export default function App() {
                   bookings={bookings}
                   products={products}
                   sales={sales}
-                  courts={courts.length}
+                  courts={courts}
                   onNavigateToTab={setActiveTab}
                   onQuickAddStock={handleQuickAddStockLink}
                   onCheckoutBooking={(id) => {
@@ -751,6 +763,8 @@ export default function App() {
                   onCheckoutClientShare={handleCheckoutClientShare}
                   onUpdateBooking={handleUpdateBooking}
                   onUpdateCourt={handleUpdateCourt}
+                  onAddCourt={handleAddCourt}
+                  onDeleteCourt={handleDeleteCourt}
                   formatPrice={formatPrice}
                 />
               )}
@@ -759,6 +773,7 @@ export default function App() {
                 <BarPOS 
                   products={products}
                   bookings={bookings}
+                  courts={courts}
                   onRegisterSale={handleRegisterDirectSale}
                   onAddProductToTab={handleAddProductToTab}
                   formatPrice={formatPrice}

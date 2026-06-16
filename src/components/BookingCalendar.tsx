@@ -14,7 +14,8 @@ import {
   FileCheck2,
   ListOrdered,
   Users,
-  AlertTriangle
+  AlertTriangle,
+  Settings
 } from 'lucide-react';
 import { Booking, Court, Product } from '../types';
 
@@ -32,6 +33,8 @@ interface BookingCalendarProps {
   onCheckoutClientShare: (bookingId: string, clientId: string, paymentMethod: 'efectivo' | 'transferencia' | 'tarjeta') => void;
   onUpdateBooking: (booking: Booking) => void;
   onUpdateCourt?: (court: Court) => void;
+  onAddCourt?: (court: Court) => void;
+  onDeleteCourt?: (courtId: string) => void;
   formatPrice: (amount: number) => string;
 }
 
@@ -50,7 +53,8 @@ const TIME_SLOTS = [
   { start: '19:00', end: '20:00' },
   { start: '20:00', end: '21:00' },
   { start: '21:00', end: '22:00' },
-  { start: '22:00', end: '23:00' }
+  { start: '22:00', end: '23:00' },
+  { start: '23:00', end: '24:00' }
 ];
 
 const ALL_TIME_CHOICES = [
@@ -62,6 +66,7 @@ const ALL_TIME_CHOICES = [
 
 const timeToNumber = (t: string): number => {
   if (!t) return 0;
+  if (t === '00:00' || t === '24:00') return 24;
   const parts = t.split(':');
   const hours = parseInt(parts[0], 10) || 0;
   const minutes = parseInt(parts[1], 10) || 0;
@@ -104,6 +109,8 @@ export default function BookingCalendar({
   onCheckoutClientShare,
   onUpdateBooking,
   onUpdateCourt,
+  onAddCourt,
+  onDeleteCourt,
   formatPrice
 }: BookingCalendarProps) {
   // Modal states
@@ -542,8 +549,8 @@ export default function BookingCalendar({
                 : 'bg-slate-800 hover:bg-[#334155] border-[#334155] text-slate-200'
             }`}
           >
-            <DollarSign size={14} className={isPricingPanelOpen ? "text-slate-950" : "text-[#9ae600]"} />
-            <span>Tarifas / Hs</span>
+            <Settings size={14} className={isPricingPanelOpen ? "text-slate-950" : "text-[#9ae600]"} />
+            <span>Gestionar Canchas</span>
           </button>
           <button 
             id="today-btn"
@@ -562,51 +569,153 @@ export default function BookingCalendar({
         </div>
       </div>
 
-      {/* Pricing adjustment panel */}
+      {/* Pricing and court adjustment panel */}
       <AnimatePresence>
         {isPricingPanelOpen && (
           <motion.div 
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden"
+            className="overflow-hidden animate-fade-in"
           >
             <div className="bg-[#1E293B] p-5 rounded-3xl border border-[#334155] shadow-lg space-y-4">
-              <div>
-                <h3 className="font-extrabold text-sm text-white">Configuración de Precios por Hora</h3>
-                <p className="text-[11px] text-slate-400">Establece el costo por hora personalizado para cada tipo de cancha.</p>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <h3 className="font-extrabold text-sm text-white">Configuración y Registro de Canchas</h3>
+                  <p className="text-[11px] text-slate-400">Edita los nombres, superficies, tarifas por hora o añade nuevas canchas al complejo.</p>
+                </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {courts.map(court => (
-                  <div key={court.id} className="bg-slate-900/60 p-4 rounded-2xl border border-[#334155] space-y-2">
-                    <div className="flex items-center gap-2 col-span-full">
-                      <span className="w-2.5 h-2.5 rounded-full bg-lime-400" />
-                      <span className="font-black text-xs text-white uppercase">{court.name}</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {courts.map(court => {
+                  // A clean color helper avoiding dynamic template string issues with Tailwind CSS compiler
+                  const getAccentClasses = (color: string) => {
+                    switch (color) {
+                      case 'emerald': return { dot: 'bg-emerald-400', border: 'border-l-4 border-l-emerald-500/80' };
+                      case 'blue': return { dot: 'bg-blue-400', border: 'border-l-4 border-l-blue-500/80' };
+                      case 'amber': return { dot: 'bg-amber-400', border: 'border-l-4 border-l-amber-500/80' };
+                      case 'rose': return { dot: 'bg-rose-400', border: 'border-l-4 border-l-rose-500/80' };
+                      case 'violet': return { dot: 'bg-violet-400', border: 'border-l-4 border-l-violet-500/80' };
+                      case 'orange': return { dot: 'bg-orange-400', border: 'border-l-4 border-l-orange-500/80' };
+                      case 'cyan': return { dot: 'bg-cyan-400', border: 'border-l-4 border-l-cyan-500/80' };
+                      case 'lime': return { dot: 'bg-lime-400', border: 'border-l-4 border-l-lime-500/80' };
+                      default: return { dot: 'bg-slate-400', border: 'border-l-4 border-l-slate-500/80' };
+                    }
+                  };
+                  const classes = getAccentClasses(court.color);
+
+                  return (
+                    <div key={court.id} className={`bg-slate-900/60 p-4 rounded-2xl border border-[#334155] space-y-3 ${classes.border}`}>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className={`w-2.5 h-2.5 rounded-full ${classes.dot}`} />
+                          <span className="font-mono text-[9px] text-slate-500 uppercase tracking-widest font-black">ID: {court.id}</span>
+                        </div>
+                        {onDeleteCourt && (
+                          <button
+                            type="button"
+                            title="Eliminar Cancha"
+                            onClick={() => {
+                              if (window.confirm(`¿Estás seguro de que deseas eliminar la ${court.name}?`)) {
+                                onDeleteCourt(court.id);
+                              }
+                            }}
+                            className="text-slate-400 hover:text-red-500 transition-colors p-1 rounded-md hover:bg-slate-800/80 cursor-pointer"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        )}
+                      </div>
+                      
+                      {/* Name input */}
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-black tracking-wider text-slate-400 uppercase">Nombre</label>
+                        <input 
+                          type="text"
+                          value={court.name}
+                          onChange={(e) => {
+                            if (onUpdateCourt) {
+                              onUpdateCourt({
+                                ...court,
+                                name: e.target.value
+                              });
+                            }
+                          }}
+                          className="w-full px-2.5 py-1.5 border border-slate-700 focus:border-lime-400 focus:outline-hidden rounded-xl text-xs bg-slate-950 font-bold text-white transition-all"
+                          placeholder="Nombre de la cancha"
+                        />
+                      </div>
+
+                      {/* Type input */}
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-black tracking-wider text-slate-400 uppercase">Superficie</label>
+                        <input 
+                          type="text"
+                          value={court.type}
+                          onChange={(e) => {
+                            if (onUpdateCourt) {
+                              onUpdateCourt({
+                                ...court,
+                                type: e.target.value
+                              });
+                            }
+                          }}
+                          className="w-full px-2.5 py-1.5 border border-[#334155] focus:border-lime-400 focus:outline-hidden rounded-xl text-xs bg-slate-950 text-slate-200 transition-all"
+                          placeholder="Cristal, Blindex, etc."
+                        />
+                      </div>
+
+                      {/* PricePerHour input */}
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-black tracking-wider text-slate-400 uppercase">Precio por hora</label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-2 text-[10px] text-slate-500 font-extrabold">Gs.</span>
+                          <input 
+                            type="number"
+                            step="1000"
+                            min="0"
+                            value={court.pricePerHour}
+                            onChange={(e) => {
+                              if (onUpdateCourt) {
+                                onUpdateCourt({
+                                  ...court,
+                                  pricePerHour: Number(e.target.value) || 0
+                                });
+                              }
+                            }}
+                            className="w-full pl-10 pr-4 py-1.5 border border-slate-700 focus:border-lime-400 focus:outline-hidden rounded-xl text-xs bg-slate-950 font-bold text-white/[0.9] transition-all"
+                            placeholder="Tarifa por hora"
+                          />
+                        </div>
+                      </div>
                     </div>
-                    <div className="relative">
-                      <span className="absolute left-3 top-2 text-xs text-slate-500 font-extrabold">Gs.</span>
-                      <input 
-                        type="number"
-                        step="1000"
-                        min="0"
-                        value={court.pricePerHour}
-                        onChange={(e) => {
-                          if (onUpdateCourt) {
-                            onUpdateCourt({
-                              ...court,
-                              pricePerHour: Number(e.target.value) || 0
-                            });
-                          }
-                        }}
-                        className="w-full pl-10 pr-4 py-1.5 border border-slate-700 focus:border-lime-400 focus:outline-hidden rounded-xl text-xs bg-slate-950 font-bold text-white/[0.9]"
-                        placeholder="Precio por hora"
-                      />
+                  );
+                })}
+
+                {/* Add new court placeholder card */}
+                {onAddCourt && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const nextNum = courts.length + 1;
+                      const COLORS = ['emerald', 'blue', 'amber', 'rose', 'violet', 'orange', 'cyan', 'lime'];
+                      const color = COLORS[courts.length % COLORS.length];
+                      onAddCourt({
+                        id: `c${Date.now()}`,
+                        name: `Cancha ${nextNum}`,
+                        type: 'Cristal',
+                        color,
+                        pricePerHour: 15000
+                      });
+                    }}
+                    className="bg-slate-900/40 hover:bg-slate-900/70 border-2 border-dashed border-slate-700 hover:border-lime-400/40 p-4 rounded-2xl flex flex-col items-center justify-center text-center gap-2.5 cursor-pointer transition-all self-stretch min-h-[180px] group text-slate-400 hover:text-white"
+                  >
+                    <PlusCircle size={32} className="text-[#9ae600] group-hover:scale-110 transition-transform" />
+                    <div>
+                      <span className="block font-black text-xs uppercase tracking-wider">Añadir Cancha</span>
+                      <span className="block text-[10px] text-slate-500 mt-1">Suma una columna al cronograma</span>
                     </div>
-                    <div className="text-[10px] text-slate-450 text-slate-400">
-                      Ref: Gs. {formatPrice(court.pricePerHour * 1.5)} por 90 min
-                    </div>
-                  </div>
-                ))}
+                  </button>
+                )}
               </div>
             </div>
           </motion.div>
@@ -637,7 +746,7 @@ export default function BookingCalendar({
                     <td className="p-4 text-xs font-bold text-slate-355 text-slate-300 whitespace-nowrap align-middle border-r border-[#334155]/50 font-mono">
                       <div className="flex items-center gap-2">
                         <span className="w-1.5 h-1.5 rounded-full bg-lime-445 bg-lime-400" />
-                        <span>{slot.start} - {slot.end}</span>
+                        <span>{slot.start} - {slot.end === '24:00' ? '00:00' : slot.end}</span>
                       </div>
                     </td>
 
@@ -842,7 +951,7 @@ export default function BookingCalendar({
                         className="w-full px-3 py-2 border border-[#334155] rounded-xl text-sm focus:outline-hidden focus:ring-1 focus:ring-[#9ae600] bg-slate-950 text-white font-bold"
                       >
                         {ALL_TIME_CHOICES.filter(t => t !== '24:00').map(t => (
-                          <option key={t} value={t} className="bg-slate-950 text-white">{t} hs ({formatTo12Hour(t)})</option>
+                          <option key={t} value={t} className="bg-slate-950 text-white">{t} hs</option>
                         ))}
                       </select>
                     </div>
@@ -856,7 +965,7 @@ export default function BookingCalendar({
                         className="w-full px-3 py-2 border border-[#334155] rounded-xl text-sm focus:outline-hidden focus:ring-1 focus:ring-[#9ae600] bg-slate-950 text-white font-bold"
                       >
                         {ALL_TIME_CHOICES.filter(time => timeToNumber(time) >= timeToNumber(formStartTime) + 1.0).map(t => (
-                          <option key={t} value={t} className="bg-slate-950 text-white">{t} hs ({formatTo12Hour(t)})</option>
+                          <option key={t} value={t} className="bg-slate-950 text-white">{t === '24:00' ? '00:00' : t} hs</option>
                         ))}
                       </select>
                     </div>
@@ -876,7 +985,7 @@ export default function BookingCalendar({
                     <div className="flex justify-between text-xs text-slate-300">
                       <span>Horas Seleccionadas:</span>
                       <span className="font-mono text-slate-200">
-                        {durationHoursVal} hs ({formatTo12Hour(formStartTime)} a {formatTo12Hour(formEndTime)})
+                        {durationHoursVal} hs ({formStartTime} a {formEndTime === '24:00' ? '00:00' : formEndTime})
                       </span>
                     </div>
                     <div className="border-t border-slate-700 my-2"></div>
@@ -941,7 +1050,7 @@ export default function BookingCalendar({
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-[11px] font-extrabold bg-emerald-600 text-white rounded-md px-2.5 py-0.5 uppercase tracking-wide">
-                      {selectedBooking.startTime} a {selectedBooking.endTime} hs
+                      {selectedBooking.startTime} a {selectedBooking.endTime === '24:00' ? '00:00' : selectedBooking.endTime} hs
                     </span>
                     <span className={`text-[11px] font-bold px-2 py-0.5 rounded-md ${
                       selectedBooking.paid ? 'bg-slate-700 text-slate-300' : 'bg-red-500 text-white'

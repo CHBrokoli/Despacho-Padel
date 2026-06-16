@@ -12,12 +12,13 @@ import {
   Share2,
   AlertCircle
 } from 'lucide-react';
-import { Product, Booking, Sale } from '../types';
+import { Product, Booking, Sale, Court } from '../types';
 import LucideIcon from './LucideIcon';
 
 interface BarPOSProps {
   products: Product[];
   bookings: Booking[];
+  courts: Court[];
   onRegisterSale: (items: { productId: string; qty: number }[], paymentMethod: 'efectivo' | 'transferencia' | 'tarjeta', description?: string) => void;
   onAddProductToTab: (bookingId: string, productId: string, qty: number) => void;
   formatPrice: (amount: number) => string;
@@ -26,6 +27,7 @@ interface BarPOSProps {
 export default function BarPOS({
   products,
   bookings,
+  courts,
   onRegisterSale,
   onAddProductToTab,
   formatPrice
@@ -431,7 +433,7 @@ export default function BarPOS({
                         <option value="">-- Selecciona el Cliente --</option>
                         {activeTodayBookings.map(b => (
                           <option key={b.id} value={b.id}>
-                            {b.clientName} ({b.startTime}hs) • Cancha {b.courtId === 'c1' ? '1' : b.courtId === 'c2' ? '2' : '3'}
+                            {b.clientName} ({b.startTime}hs) • {courts.find(c => c.id === b.courtId)?.name || `Cancha (${b.courtId})`}
                           </option>
                         ))}
                       </select>

@@ -10,14 +10,14 @@ import {
   Plus, 
   UtensilsCrossed 
 } from 'lucide-react';
-import { Booking, Product, Sale } from '../types';
+import { Booking, Product, Sale, Court } from '../types';
 import LucideIcon from './LucideIcon';
 
 interface DashboardProps {
   bookings: Booking[];
   products: Product[];
   sales: Sale[];
-  courts: number;
+  courts: Court[];
   onNavigateToTab: (tab: string) => void;
   onQuickAddStock: (productId: string) => void;
   onCheckoutBooking: (bookingId: string) => void;
@@ -29,6 +29,7 @@ export default function Dashboard({
   bookings,
   products,
   sales,
+  courts,
   onNavigateToTab,
   onQuickAddStock,
   onCheckoutBooking,
@@ -58,9 +59,8 @@ export default function Dashboard({
     return acc + s.total;
   }, 0);
 
-  // Occupancy rate (e.g. 3 courts * 10 time slots possible = 30 max slots)
-  // Let's assume there are 8 standard slots per court per day (08:00, 09:30, 11:00, 14:00, 15:30, 17:00, 18:30, 20:00, 21:30)
-  const maxDailySlots = 3 * 8; 
+  // Occupancy rate (e.g. courts count * 8 time slots possible)
+  const maxDailySlots = (courts.length || 3) * 8; 
   const occupancyPercentage = Math.round((todayBookings.length / maxDailySlots) * 100);
 
   // Low stock products
@@ -248,7 +248,7 @@ export default function Dashboard({
                       </div>
                       <p className="text-xs text-slate-400 flex items-center gap-1.5">
                         <span className="w-2 h-2 rounded-full bg-slate-500 inline-block"></span>
-                        {b.courtId === 'c1' ? 'Cancha 1 (Cristal)' : b.courtId === 'c2' ? 'Cancha 2 (Panorámica)' : 'Cancha 3 (Hormigón)'}
+                        {courts.find(c => c.id === b.courtId)?.name || `Cancha (${b.courtId})`}
                         {b.clientPhone && ` • Tel: ${b.clientPhone}`}
                       </p>
                     </div>

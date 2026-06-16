@@ -1,7 +1,7 @@
 export interface Court {
   id: string;
   name: string;
-  type: 'Cristal' | 'Blindex' | 'Hormigón';
+  type: string; // e.g. 'Cristal' | 'Blindex' | 'Hormigón'
   color: string; // Tailwind color class for badges/borders
   pricePerHour: number; // Price per hour
 }
