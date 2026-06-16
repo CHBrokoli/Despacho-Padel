@@ -29,8 +29,48 @@ import InventoryManager from './components/InventoryManager';
 export default function App() {
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [selectedDate, setSelectedDate] = useState<string>(() => {
-    return new Date().toISOString().split('T')[0];
+    try {
+      const formatter = new Intl.DateTimeFormat('sv-SE', {
+        timeZone: 'America/Asuncion',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      });
+      return formatter.format(new Date()); 
+    } catch (e) {
+      const d = new Date();
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
   });
+
+  const [currentTime, setCurrentTime] = useState<string>('');
+
+  useEffect(() => {
+    const updateTime = () => {
+      try {
+        const timeStr = new Intl.DateTimeFormat('es-PY', {
+          timeZone: 'America/Asuncion',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false
+        }).format(new Date());
+        setCurrentTime(timeStr);
+      } catch (e) {
+        const now = new Date();
+        const hrs = String(now.getHours()).padStart(2, '0');
+        const mins = String(now.getMinutes()).padStart(2, '0');
+        const secs = String(now.getSeconds()).padStart(2, '0');
+        setCurrentTime(`${hrs}:${mins}:${secs}`);
+      }
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   // State handles
   const [courts, setCourts] = useState<Court[]>([]);
@@ -595,7 +635,7 @@ export default function App() {
               P
             </div>
             <div>
-              <h2 className="font-extrabold text-sm leading-tight tracking-tight uppercase text-white">Pistacho Pádel</h2>
+              <h2 className="font-extrabold text-sm leading-tight tracking-tight uppercase text-white">Pistacho</h2>
               <span className="text-[10px] text-lime-400 font-bold uppercase tracking-widest">Gestión Sencilla</span>
             </div>
           </div>
@@ -700,14 +740,35 @@ export default function App() {
           <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto justify-end">
             
             <div className="text-right">
-              <span className="block text-[11px] font-black text-slate-200">Fecha Servidor</span>
-              <span className="text-[10px] text-slate-400 font-mono">
-                {new Date(selectedDate).toLocaleDateString('es-AR', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
+              <span className="block text-[10px] font-extrabold text-lime-400 uppercase tracking-widest flex items-center justify-end gap-1.5">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-lime-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-lime-500"></span>
+                </span>
+                Hora Paraguay (PY)
+              </span>
+              <span className="text-xs font-black text-white font-mono block">
+                {currentTime || '--:--:--'}
+              </span>
+              <span className="text-[10px] text-slate-400 font-mono block mt-0.5">
+                {(() => {
+                  try {
+                    return new Intl.DateTimeFormat('es-PY', {
+                      timeZone: 'America/Asuncion',
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    }).format(new Date());
+                  } catch (e) {
+                    return new Date().toLocaleDateString('es-PY', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    });
+                  }
+                })()}
               </span>
             </div>
             

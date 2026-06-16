@@ -204,7 +204,7 @@ export default function Dashboard({
       {/* Main Sections Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Row Left: Track Ongoing / Upcoming booked slots with easy interaction */}
-        <motion.div variants={itemVariants} className="lg:col-span-2 w-[673px] h-[586.25px] bg-[#1E293B] rounded-3xl border border-[#334155] pb-6 px-0 pt-0 ml-0 space-y-4">
+        <motion.div variants={itemVariants} className="lg:col-span-2 w-full bg-[#1E293B] rounded-3xl border border-[#334155] p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="w-2 h-6 bg-lime-400 rounded-full"></span>
