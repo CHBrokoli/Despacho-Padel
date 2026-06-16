@@ -160,8 +160,8 @@ export default function BarPOS({
     <div className="space-y-6">
       {/* Title Header */}
       <div>
-        <h1 id="bar-pos-title" className="text-3xl font-extrabold text-slate-900 tracking-tight">Bar & Despacho de Insumos</h1>
-        <p className="text-slate-500 mt-1">Sencilla interfaz táctil para vender productos del mostrador o cargarlos a las canchas.</p>
+        <h1 id="bar-pos-title" className="text-3xl font-extrabold text-white tracking-tight">Pistacho Bar / POS</h1>
+        <p className="text-slate-400 mt-1">Sencilla interfaz táctil para vender productos del mostrador o cargarlos a las canchas.</p>
       </div>
 
       {/* Alert bar */}

@@ -612,7 +612,7 @@ export default function App() {
           </div>
           <div className="min-w-0">
             <p className="text-xs font-bold leading-tight truncate text-slate-200">Administrador</p>
-            <p className="text-[10px] text-slate-400 truncate mt-0.5">quimikall51@gmail.com</p>
+            <p className="text-[10px] text-[#0e162c] truncate mt-0.5">quimikall51@gmail.com</p>
           </div>
         </div>
 
@@ -654,7 +654,7 @@ export default function App() {
             }`}
           >
             <Wine size={15} />
-            <span>Despacho Bar / POS</span>
+            <span>Pistacho Bar / POS</span>
           </button>
 
           <button
